@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商家端 - 訂單管理系統</title>
+    <link rel="stylesheet" href="merchant.css">
+</head>
+<body>
+    <header>
+        <h1>👨‍🍳 減脂餐便當 - 廚房接單系統</h1>
+        <div class="store-status">營業中 (自動接收東吳學生訂單)</div>
+    </header>
+
+    <main class="kanban-board">
+        <!-- 待接單 -->
+        <div class="column" id="col-pending">
+            <h2>🚨 新訂單 (待接單) <span class="count">0</span></h2>
+            <div class="order-list" id="list-pending"></div>
+        </div>
+
+        <!-- 製作中 -->
+        <div class="column" id="col-preparing">
+            <h2>🍳 製作中 <span class="count">0</span></h2>
+            <div class="order-list" id="list-preparing"></div>
+        </div>
+
+        <!-- 待取餐 -->
+        <div class="column" id="col-ready">
+            <h2>🛍️ 待取餐 <span class="count">0</span></h2>
+            <div class="order-list" id="list-ready"></div>
+        </div>
+    </main>
+
+    <!-- 載入 Firebase 與商家端邏輯 -->
+    <script type="module" src="merchant.js"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>減脂餐 - 線上點餐</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>🍱 減脂餐健康便當</h1>
+        <!-- 右上角購物車按鈕 -->
+        <div class="cart-icon" onclick="toggleCart()">
+            🛒 購物車 (<span id="cart-count">0</span>)
+        </div>
+    </header>
+
+    <!-- 購物車抽屜/側欄 -->
+    <div id="cart-sidebar" class="cart-sidebar">
+        <h3>🛒 你的購物車</h3>
+        <ul id="cart-items">
+            <!-- 購物車項目會由 JavaScript 自動產生 -->
+        </ul>
+        <hr>
+        <p><strong>總金額： $<span id="cart-total">0</span></strong></p>
+        <button onclick="checkout()">選擇付款並結帳</button>
+        <button onclick="toggleCart()">關閉</button>
+    </div>
+
+    <!-- 菜單區域 -->
+<main class="menu-container">
+
+<main class="menu-container">
+    <!-- 分頁按鈕區域 -->
+    <div class="category-tabs">
+        <button class="tab-btn active" onclick="filterCategory('all', this)">全部餐點</button>
+        <button class="tab-btn" onclick="filterCategory('bento', this)">🍱 健康便當</button>
+        <button class="tab-btn" onclick="filterCategory('drink', this)">🥤 特調飲料</button>
+    </div>
+
+    <!-- 菜單區域 -->
+    <div id="menu-list" class="menu-list"></div>
+</main>
+
+    
+    <!-- JavaScript 會自動把所有便當渲染到這裡 -->
+    <div id="menu-list" class="menu-list"></div>
+</main>
+
+   <!-- 客製化彈出視窗 (Modal) -->
+<div id="custom-modal" class="modal">
+    <div class="modal-content">
+        <h3 id="modal-item-name">品項名稱</h3>
+        
+        <!-- JavaScript 會自動根據類別塞入便當加購，或是飲料的甜度與冰塊單選按鈕 -->
+        <div id="modal-custom-options"></div>
+
+        <div class="modal-actions" style="margin-top: 20px;">
+            <button onclick="closeModal()">取消</button>
+            <button onclick="addToCart()" class="btn-primary">加入購物車</button>
+        </div>
+    </div>
+</div>
+
+    <script src="script.js"></script>
+
+<!-- 付款方式選單視窗 -->
+<div id="checkout-modal" class="modal">
+    <div class="modal-content">
+        <h3>💳 選擇付款方式</h3>
+        <p>請選擇您的付款與取餐方式：</p>
+        
+        <label style="display:block; margin: 10px 0;">
+            <input type="radio" name="payment" value="linepay" checked> 💚 Line Pay (線上支付)
+        </label>
+        <label style="display:block; margin: 10px 0;">
+            <input type="radio" name="payment" value="cash"> 💵 現場付款 (到店取餐時付現)
+        </label>
+
+        <div class="modal-actions">
+            <button onclick="closeCheckoutModal()">返回修改</button>
+            <button onclick="processPayment()">確定結帳</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
