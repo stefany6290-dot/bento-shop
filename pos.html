@@ -6,21 +6,63 @@
     <title>現場點餐系統 (櫃檯專用)</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* 整體容器佈局 */
         .pos-container {
             display: flex;
             gap: 20px;
             padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            align-items: flex-start; /* 讓購物籃維持在頂端，方便黏性定位 */
         }
+
+        /* 左側：菜單區塊 */
         .menu-section {
-            flex: 2;
+            flex: 1; /* 自動佔用剩餘寬度 */
         }
+
+        /* 關鍵：讓菜單品項從左到右橫向並排 (網格呈現) */
+        #menu-list.menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* 自動適應寬度並排 */
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        /* 卡片點擊樣式優化 */
+        #menu-list .card {
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #menu-list .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* 右側：購物籃區塊 (固定不動) */
         .cart-section {
-            flex: 1;
+            width: 320px; /* 固定寬度 */
             background: #f8f9fa;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky; /* 關鍵：設定為黏性定位 */
+            top: 20px;       /* 頁面滾動時，固定距離頂部 20px */
+            max-height: calc(100vh - 40px); /* 限制最高為螢幕高度 */
+            display: flex;
+            flex-direction: column;
         }
+
+        /* 購物車列表內部滾動 */
+        #pos-cart-items {
+            overflow-y: auto;
+            flex-grow: 1;
+            max-height: 350px;
+            padding-right: 5px;
+        }
+
+        /* 模擬按鈕樣式 */
         .sim-btn {
             margin-top: 15px;
             width: 100%;
@@ -33,6 +75,7 @@
             font-size: 15px;
             font-weight: bold;
         }
+
         .sim-btn:hover {
             background: #d35400;
         }
@@ -41,13 +84,13 @@
 <body>
 
     <div class="pos-container">
-        <!-- 左側：菜單區塊 -->
+        <!-- 左側：菜單區塊 (由左至右橫向排列) -->
         <div class="menu-section">
             <h2>🚶‍♂️ 現場點餐系統 (櫃檯專用)</h2>
             <div id="menu-list" class="menu-grid"></div>
         </div>
 
-        <!-- 右側：現場購物車與結帳 -->
+        <!-- 右側：現場購物車與結帳 (固定於右上角) -->
         <div class="cart-section">
             <h3>🛒 目前訂單</h3>
             <ul id="pos-cart-items"></ul>
@@ -55,8 +98,8 @@
             <h4>總計: $<span id="pos-cart-total">0</span></h4>
             <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitPosOrder()">送出現場訂單</button>
             
-            <!-- 模擬按鈕放置於側邊欄底部 -->
-            <button class="sim-btn" onclick="startRushHour()">🚀 模擬中午 12:00 大下課點餐人潮</button>
+            <!-- 模擬按鈕放置於購物籃底部 -->
+            <button class="sim-btn" onclick="startRushHour()">🚀 模擬 12:00 大下課點餐人潮</button>
         </div>
     </div>
 
@@ -65,14 +108,14 @@
     <script src="simulate.js"></script>
 
     <script>
-        // 修正：當 POS 網頁載入完成時，主動渲染菜單
+        // 頁面載入完成後自動渲染菜單
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof renderMenu === 'function') {
                 renderMenu();
             }
         });
 
-        // 修正：現場送出訂單邏輯 (指向 Render 雲端 API)
+        // 現場送出訂單邏輯 (連線至 Render 雲端 API)
         async function submitPosOrder() {
             if (!cart || cart.length === 0) {
                 alert("請先選擇餐點！");
