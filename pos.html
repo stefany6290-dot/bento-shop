@@ -3,150 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>現場點餐機 (櫃檯專用)</title>
+    <title>現場點餐系統 (櫃檯專用)</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; margin: 0; background: #f8f9fa; height: 100vh; overflow: hidden; }
-        .menu-section { flex: 2; padding: 30px; overflow-y: auto; }
-        .cart-section { flex: 1; background: white; padding: 30px; border-left: 1px solid #ddd; display: flex; flex-direction: column; }
-        h2 { margin-top: 0; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-top: 20px; }
-        .item-btn { padding: 20px; text-align: center; background: #fff; border: 2px solid #ddd; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: bold; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .item-btn:hover, .item-btn:active { border-color: #fd7e14; background: #fff3cd; }
-        .price { color: #e65100; margin-top: 8px; font-size: 18px; }
-        
-        .cart-list { list-style: none; padding: 0; flex-grow: 1; overflow-y: auto; }
-        .cart-list li { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px dashed #ccc; font-size: 16px; }
-        .remove-btn { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        .total-area { border-top: 2px solid #333; padding-top: 15px; margin-top: 15px; text-align: right; font-size: 22px; font-weight: bold; }
-        .checkout-btn { width: 100%; padding: 18px; background: #fd7e14; color: white; border: none; font-size: 20px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 10px rgba(253, 126, 20, 0.3); }
-        .checkout-btn:hover { background: #e86e10; }
+        .pos-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+        }
+        .menu-section {
+            flex: 2;
+        }
+        .cart-section {
+            flex: 1;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .sim-btn {
+            margin-top: 15px;
+            width: 100%;
+            background: #e67e22;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+        .sim-btn:hover {
+            background: #d35400;
+        }
     </style>
 </head>
 <body>
 
-    <!-- 左側：菜單區 -->
-    <div class="menu-section">
-        <h2>🚶‍♂️ 現場點餐系統 (櫃檯專用)</h2>
-        <div class="grid" id="pos-menu">
-            <!-- JavaScript 自動生成餐點按鈕 -->
+    <div class="pos-container">
+        <!-- 左側：菜單區塊 -->
+        <div class="menu-section">
+            <h2>🚶‍♂️ 現場點餐系統 (櫃檯專用)</h2>
+            <div id="menu-list" class="menu-grid"></div>
+        </div>
+
+        <!-- 右側：現場購物車與結帳 -->
+        <div class="cart-section">
+            <h3>🛒 目前訂單</h3>
+            <ul id="pos-cart-items"></ul>
+            <hr>
+            <h4>總計: $<span id="pos-cart-total">0</span></h4>
+            <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitPosOrder()">送出現場訂單</button>
+            
+            <!-- 模擬按鈕放置於側邊欄底部 -->
+            <button class="sim-btn" onclick="startRushHour()">🚀 模擬中午 12:00 大下課點餐人潮</button>
         </div>
     </div>
 
-    <!-- 右側：購物車與結帳區 -->
-    <div class="cart-section">
-        <h2>🛒 目前訂單</h2>
-        <ul class="cart-list" id="pos-cart"></ul>
-        
-        <div class="total-area">
-            總計: $<span id="pos-total">0</span>
-        </div>
-        
-        <button class="checkout-btn" onclick="submitPosOrder()">送出現場訂單</button>
-    </div>
+    <!-- 載入邏輯腳本 -->
+    <script src="script.js"></script>
+    <script src="simulate.js"></script>
 
     <script>
-        // 沿用原有的菜單資料
-        const menuItems = [
-            { id: 'b1', name: '舒肥雞胸肉便當', price: 120 },
-            { id: 'b2', name: '香煎牛排便當', price: 180 },
-            { id: 'b3', name: '烤鮭魚排便當', price: 160 },
-            { id: 'd1', name: '無糖高山青茶', price: 35 },
-            { id: 'd2', name: '鮮奶黑豆水', price: 50 }
-        ];
+        // 修正：當 POS 網頁載入完成時，主動渲染菜單
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof renderMenu === 'function') {
+                renderMenu();
+            }
+        });
 
-        let posCart = [];
-
-        // 渲染菜單按鈕
-        function renderMenu() {
-            const menuContainer = document.getElementById('pos-menu');
-            menuItems.forEach(item => {
-                menuContainer.innerHTML += `
-                    <div class="item-btn" onclick="addToPosCart('${item.id}', '${item.name}', ${item.price})">
-                        ${item.name}
-                        <div class="price">$${item.price}</div>
-                    </div>
-                `;
-            });
-        }
-
-        // 加入購物車
-        function addToPosCart(id, name, price) {
-            posCart.push({ id, name, price, addons: [], notes: ['現場客製'] });
-            updatePosCartUI();
-        }
-
-        // 移除購物車項目
-        function removeFromCart(index) {
-            posCart.splice(index, 1);
-            updatePosCartUI();
-        }
-
-        // 更新購物車畫面
-        function updatePosCartUI() {
-            const cartList = document.getElementById('pos-cart');
-            let total = 0;
-            cartList.innerHTML = '';
-
-            posCart.forEach((item, index) => {
-                total += item.price;
-                cartList.innerHTML += `
-                    <li>
-                        <span>${item.name}</span>
-                        <div>
-                            <span style="margin-right: 15px;">$${item.price}</span>
-                            <button class="remove-btn" onclick="removeFromCart(${index})">刪除</button>
-                        </div>
-                    </li>
-                `;
-            });
-
-            document.getElementById('pos-total').innerText = total;
-        }
-
-        // 送出訂單至後端資料庫
+        // 修正：現場送出訂單邏輯 (指向 Render 雲端 API)
         async function submitPosOrder() {
-            if (posCart.length === 0) {
-                alert('購物車是空的！');
+            if (!cart || cart.length === 0) {
+                alert("請先選擇餐點！");
                 return;
             }
 
-            // 現場客給予隨機代號或預設名稱
             const studentId = '現場排隊客-' + Math.floor(1000 + Math.random() * 9000);
 
             try {
-                const response = await fetch('http://localhost:3000/api/orders', {
+                const response = await fetch('https://bento-shop.onrender.com/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         studentId: studentId,
-                        cart: posCart, 
-                        paymentMethod: 'cash',  // 現場付款
-                        orderType: 'onsite'     // 重點：標記為現場訂單
+                        cart: cart,
+                        paymentMethod: 'cash',  // 現場預設現金付款
+                        orderType: 'onsite'     // 標示為現場訂單
                     })
                 });
 
                 if (response.ok) {
-                    alert('現場訂單已成功送出！請查看廚房看板。');
-                    posCart = []; // 清空購物車
-                    updatePosCartUI();
+                    alert('✅ 現場訂單已成功送出！請查看廚房看板。');
+                    cart = []; // 清空購物車
+                    if (typeof updateCartUI === 'function') updateCartUI();
                 } else {
-                    alert('送出失敗，請確認伺服器狀態。');
+                    alert('❌ 送出失敗，狀態碼：' + response.status);
                 }
             } catch (error) {
                 console.error("錯誤:", error);
-                alert("無法連線至伺服器 (node server.js 是否開啟?)");
+                alert("無法連線至伺服器，請確認伺服器狀態！");
             }
         }
-
-
     </script>
-    <!-- 1. 在頁面中加入模擬按鈕 (必須放在 </body> 裡面) -->
-<button onclick="startRushHour()" style="background: #e67e22; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
-    🚀 模擬中午 12:00 大下課點餐人潮
-</button>
-
-<!-- 2. 引入修改後的 simulate.js -->
-<script src="simulate.js"></script>
 </body>
-
 </html>
