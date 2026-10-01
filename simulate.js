@@ -1,5 +1,5 @@
 // simulate.js
-const API_URL = 'http://localhost:3000/api/orders';
+const API_URL = 'https://bento-shop.onrender.com/api/orders';
 
 // 準備一些模擬的餐點資料
 const mockItems = [
@@ -50,4 +50,5 @@ async function startRushHour() {
     console.log('🎉 尖峰時段模擬完成！請查看廚房看板。');
 }
 
-startRushHour();
+// 導出函數供 HTML 按鈕呼叫
+window.startRushHour = startRushHour;;

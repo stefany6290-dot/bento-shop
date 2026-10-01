@@ -138,8 +138,15 @@
             }
         }
 
-        // 網頁載入時執行
-        window.onload = renderMenu;
+
     </script>
+    <!-- 1. 在頁面中加入模擬按鈕 (必須放在 </body> 裡面) -->
+<button onclick="startRushHour()" style="background: #e67e22; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+    🚀 模擬中午 12:00 大下課點餐人潮
+</button>
+
+<!-- 2. 引入修改後的 simulate.js -->
+<script src="simulate.js"></script>
 </body>
+
 </html>
