@@ -1,12 +1,19 @@
 // merchant.js
 
+// merchant.js
+
 // 1. 每 3 秒自動向 SQLite 伺服器抓取一次最新訂單
 setInterval(fetchOrders, 3000);
 fetchOrders(); // 網頁剛載入時先抓一次
 
 async function fetchOrders() {
     try {
-        const response = await fetch('http://localhost:3000/api/orders');
+        const response = await fetch('https://bento-shop-backend.onrender.com/api');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
+        }
+
         const orders = await response.json();
         
         // 更新上方數字
@@ -20,7 +27,7 @@ async function fetchOrders() {
 
         renderKanban(orders);
     } catch (error) {
-        console.error("無法取得訂單，請確認 node server.js 是否開啟:", error);
+        console.error("無法取得訂單，請確認 Render 後端伺服器是否正常運行:", error);
     }
 }
 
@@ -31,8 +38,18 @@ function renderKanban(orders) {
     document.getElementById('list-ready').innerHTML = '';
 
     orders.forEach(order => {
+        // 安全解析 cart_items (若為字串則自動轉為 Array)
+        let cartItems = [];
+        try {
+            cartItems = typeof order.cart_items === 'string' 
+                ? JSON.parse(order.cart_items) 
+                : (order.cart_items || []);
+        } catch (e) {
+            console.error("解析購物車資料失敗:", e);
+        }
+
         // 處理購物車內容
-        let itemsHtml = order.cart_items.map(item => {
+        let itemsHtml = cartItems.map(item => {
             let details = [];
             if (item.addons) details.push(...item.addons);
             if (item.notes) details.push(...item.notes);
@@ -57,7 +74,7 @@ function renderKanban(orders) {
             </div>
         `;
 
-        // 依照狀態放入對應的欄位
+        // 依照狀態放入對應欄位
         if (order.status === 'pending') {
             document.getElementById('list-pending').innerHTML += cardHtml;
         } else if (order.status === 'preparing') {
@@ -75,17 +92,21 @@ function getActionButton(id, status) {
     return '';
 }
 
-// 3. 更新訂單狀態
+// 3. 更新訂單狀態 (修正斜線 Bug)
 window.updateStatus = async function(id, newStatus) {
     try {
-        await fetch(`http://localhost:3000/api/orders/${id}`, {
+        const response = await fetch(`https://bento-shop-backend.onrender.com/api/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
         });
         
+        if (!response.ok) {
+            throw new Error(`更新失敗，狀態碼: ${response.status}`);
+        }
+
         fetchOrders(); // 更新狀態後立刻重抓畫面
     } catch (error) {
         console.error("更新狀態失敗:", error);
     }
-}
+};
