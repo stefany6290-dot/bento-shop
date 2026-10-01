@@ -243,27 +243,31 @@ function closeCheckoutModal() {
     document.getElementById('checkout-modal').style.display = 'none';
 }
 
-// 修改 script.js 中的 processPayment 函數
+// 處理付款並向 Render 後端送出訂單
 async function processPayment() {
     const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
     
     const studentId = prompt("請輸入您的東吳大學學號 (例如: 09123456)：", "09123456");
-    if(!studentId) return;
+    if (!studentId) return;
 
     alert('系統處理訂單中...');
 
     try {
-        // 使用 fetch 將資料 POST 到剛寫好的 SQLite 後端
-        const response = await fetch('http://localhost:3000/api/orders', {
+        // 關鍵修正：將網址補上 /orders
+        const response = await fetch('https://bento-shop-backend.onrender.com/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 studentId: studentId,
                 cart: cart, 
                 paymentMethod: paymentMethod,
-                orderType: 'online'  // 【重點新增】這筆訂單是來自線上平台
+                orderType: 'online'  // 標示為線上預訂
             })
         });
+
+        if (!response.ok) {
+            throw new Error(`伺服器錯誤，狀態碼: ${response.status}`);
+        }
 
         const data = await response.json();
 
@@ -279,9 +283,8 @@ async function processPayment() {
 
     } catch (error) {
         console.error("錯誤:", error);
-        alert("訂單送出失敗，請確認伺服器是否開啟！");
+        alert("訂單送出失敗，請確認伺服器是否開啟或稍後再試！");
     }
-
 }
 
 window.onload = renderMenu;
