@@ -4,8 +4,16 @@ const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
-app.use(cors()); // 允許跨域請求 (讓前端網頁可以打 API)
-app.use(express.json()); // 解析 JSON 格式的請求資料
+
+// ✅ 完整 CORS 跨域設定 (解決 Preflight options 被阻擋問題)
+app.use(cors({
+    origin: '*', // 或指定 'https://stefany6290-dot.github.io'
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+
+app.use(express.json()); // 解析 JSON 格式請求
 
 // 1. 初始化 SQLite 資料庫 (會自動產生 orders.db 檔案)
 const db = new sqlite3.Database('./orders.db', (err) => {
