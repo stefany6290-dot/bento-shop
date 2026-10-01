@@ -13,23 +13,22 @@
             padding: 20px;
             max-width: 1400px;
             margin: 0 auto;
-            align-items: flex-start; /* 讓購物籃維持在頂端，方便黏性定位 */
+            align-items: flex-start;
         }
 
         /* 左側：菜單區塊 */
         .menu-section {
-            flex: 1; /* 自動佔用剩餘寬度 */
+            flex: 1;
         }
 
-        /* 關鍵：讓菜單品項從左到右橫向並排 (網格呈現) */
+        /* 菜單品項從左到右橫向並排 */
         #menu-list.menu-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* 自動適應寬度並排 */
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 15px;
             margin-top: 15px;
         }
 
-        /* 卡片點擊樣式優化 */
         #menu-list .card {
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
@@ -42,24 +41,25 @@
 
         /* 右側：購物籃區塊 (固定不動) */
         .cart-section {
-            width: 320px; /* 固定寬度 */
+            width: 320px;
             background: #f8f9fa;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            position: sticky; /* 關鍵：設定為黏性定位 */
-            top: 20px;       /* 頁面滾動時，固定距離頂部 20px */
-            max-height: calc(100vh - 40px); /* 限制最高為螢幕高度 */
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
             display: flex;
             flex-direction: column;
         }
 
-        /* 購物車列表內部滾動 */
-        #pos-cart-items {
+        #cart-items {
             overflow-y: auto;
             flex-grow: 1;
             max-height: 350px;
             padding-right: 5px;
+            list-style: none;
+            padding-left: 0;
         }
 
         /* 模擬按鈕樣式 */
@@ -79,6 +79,34 @@
         .sim-btn:hover {
             background: #d35400;
         }
+
+        /* 客製化 Modal 視窗基本樣式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 450px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -90,16 +118,27 @@
             <div id="menu-list" class="menu-grid"></div>
         </div>
 
-        <!-- 右側：現場購物車與結帳 (固定於右上角) -->
+        <!-- 右側：現場購物車與結帳 (固定於右上角，ID 統一為 cart-items 與 cart-total) -->
         <div class="cart-section">
-            <h3>🛒 目前訂單</h3>
-            <ul id="pos-cart-items"></ul>
+            <h3>🛒 目前訂單 (<span id="cart-count">0</span>)</h3>
+            <ul id="cart-items"></ul>
             <hr>
-            <h4>總計: $<span id="pos-cart-total">0</span></h4>
+            <h4>總計: $<span id="cart-total">0</span></h4>
             <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitPosOrder()">送出現場訂單</button>
             
-            <!-- 模擬按鈕放置於購物籃底部 -->
             <button class="sim-btn" onclick="startRushHour()">🚀 模擬 12:00 大下課點餐人潮</button>
+        </div>
+    </div>
+
+    <!-- 客製化選單 Modal (解決點擊品項無法選擇客製化的關鍵結構) -->
+    <div id="custom-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3 id="modal-item-name">餐點客製化</h3>
+            <hr>
+            <div id="modal-custom-options"></div>
+            <br>
+            <button class="btn-primary" style="width: 100%;" onclick="addToCart()">加入購物車</button>
         </div>
     </div>
 
