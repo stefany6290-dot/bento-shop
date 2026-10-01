@@ -254,7 +254,7 @@ async function processPayment() {
 
     try {
         // 關鍵修正：將網址補上 /orders
-        const response = await fetch('https://bento-shop-backend.onrender.com/api/orders', {
+        const response = await fetch('https://bento-shop.onrender.com/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

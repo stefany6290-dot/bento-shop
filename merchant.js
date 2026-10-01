@@ -8,7 +8,7 @@ fetchOrders(); // 網頁剛載入時先抓一次
 
 async function fetchOrders() {
     try {
-        const response = await fetch('https://bento-shop-backend.onrender.com/api');
+        const response = await fetch('https://bento-shop.onrender.com/api/orders');
         
         if (!response.ok) {
             throw new Error(`HTTP 錯誤！狀態碼: ${response.status}`);
@@ -95,7 +95,7 @@ function getActionButton(id, status) {
 // 3. 更新訂單狀態 (修正斜線 Bug)
 window.updateStatus = async function(id, newStatus) {
     try {
-        const response = await fetch(`https://bento-shop-backend.onrender.com/api/${id}`, {
+        const response = await fetch(`https://bento-shop.onrender.com/api/orders/${id}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
