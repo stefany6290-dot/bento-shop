@@ -1,74 +1,48 @@
-// 1. 餐點資料：便當與飲料分開設定客製化選項
+// 1. 丼物園最新菜單資料
 const menuItems = [
-    {
-        id: 'b1',
-        name: '舒肥雞胸肉便當',
-        price: 120,
-        category: 'bento',
-        description: '高蛋白低脂肪首選，軟嫩不柴',
-        image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80',
-        addons: [
-            { name: '加溏心蛋', price: 10 },
-            { name: '加一份舒肥雞胸肉', price: 35 }
-        ],
-        notes: ['飯少', '不要蔥', '醬汁另外放']
-    },
-    {
-        id: 'b2',
-        name: '香煎牛排便當',
-        price: 180,
-        category: 'bento',
-        description: '原塊牛肉煎香，補充滿滿鐵質',
-        image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=500&q=80',
-        addons: [
-            { name: '加溏心蛋', price: 10 },
-            { name: '加一份嫩煎牛排', price: 60 }
-        ],
-        notes: ['飯少', '不要蔥', '醬汁另外放']
-    },
-    {
-        id: 'b3',
-        name: '烤鮭魚排便當',
-        price: 160,
-        category: 'bento',
-        description: '富含 Omega-3 健康油脂',
-        image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=500&q=80',
-        addons: [
-            { name: '加溏心蛋', price: 10 },
-            { name: '加一份烤鮭魚', price: 50 }
-        ],
-        notes: ['飯少', '不要蔥', '醬汁另外放']
-    },
-    {
-        id: 'd1',
-        name: '無糖高山青茶',
-        price: 35,
-        category: 'drink',
-        description: '甘甜解膩，搭配健康便當的最佳選擇',
-        image: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=500&q=80',
-        sweetness: ['無糖', '微糖', '半糖'],
-        ice: ['去冰', '少冰', '正常冰']
-    },
-    {
-        id: 'd2',
-        name: '鮮奶黑豆水',
-        price: 50,
-        category: 'drink',
-        description: '高纖濃郁，補充植物性蛋白質與營養',
-        image: 'https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=500&q=80',
-        sweetness: ['無糖', '微糖', '半糖'],
-        ice: ['去冰', '少冰', '正常冰']
-    }
+    // 丼飯類
+    { id: 'don1', name: '燒肉丼', price: 71, category: 'donburi' },
+    { id: 'don2', name: '唐揚雞丼', price: 71, category: 'donburi' },
+    { id: 'don3', name: '日式豬排丼', price: 71, category: 'donburi' },
+    { id: 'don4', name: '蒲燒鯛魚丼', price: 71, category: 'donburi' },
+    { id: 'don5', name: '親子丼', price: 71, category: 'donburi' },
+    { id: 'don6', name: '脆雞丼', price: 71, category: 'donburi' },
+    { id: 'don7', name: '黃金雞排丼', price: 71, category: 'donburi' },
+    // 定食類
+    { id: 'tei1', name: '日式炸豬排定食', price: 86, category: 'teishoku' },
+    { id: 'tei2', name: '燒肉定食', price: 86, category: 'teishoku' },
+    { id: 'tei3', name: '唐揚雞定食', price: 86, category: 'teishoku' },
+    { id: 'tei4', name: '蒲燒鯛魚定食', price: 86, category: 'teishoku' },
+    { id: 'tei5', name: '嫩雞定食', price: 86, category: 'teishoku' },
+    { id: 'tei6', name: '脆雞定食', price: 86, category: 'teishoku' },
+    { id: 'tei7', name: '黃金雞排定食', price: 86, category: 'teishoku' },
+    { id: 'tei8', name: '梅花肉片定食', price: 86, category: 'teishoku' },
+    { id: 'tei9', name: '日式照燒里肌肉排定食', price: 91, category: 'teishoku' },
+    { id: 'tei10', name: '菜飯', price: 56, category: 'teishoku' },
+    // 咖哩類
+    { id: 'cur1', name: '燒肉咖哩', price: 96, category: 'curry' },
+    { id: 'cur2', name: '唐揚雞咖哩', price: 96, category: 'curry' },
+    { id: 'cur3', name: '日式豬排咖哩', price: 96, category: 'curry' },
+    { id: 'cur4', name: '蒲燒鯛魚咖哩', price: 96, category: 'curry' },
+    { id: 'cur5', name: '嫩雞咖哩', price: 96, category: 'curry' },
+    { id: 'cur6', name: '脆雞咖哩', price: 96, category: 'curry' },
+    { id: 'cur7', name: '黃金雞排咖哩', price: 96, category: 'curry' },
+    { id: 'cur8', name: '梅花肉片咖哩', price: 96, category: 'curry' },
+    { id: 'cur9', name: '日式照燒里肌肉排咖哩', price: 96, category: 'curry' },
+    { id: 'cur10', name: '原味咖哩飯', price: 66, category: 'curry' },
+    // 燴飯類
+    { id: 'ris1', name: '黑胡椒牛柳燴飯', price: 101, category: 'risotto' },
+    { id: 'ris2', name: '紅燒牛腩燴飯', price: 101, category: 'risotto' }
 ];
 
 let currentCategory = 'all';
 let currentItem = null;
 let cart = [];
+let orderCounter = 1; // 取餐編號計數器
 
 // 2. 渲染菜單列表
 function renderMenu() {
     const menuList = document.getElementById('menu-list');
-    if (!menuList) return;
     menuList.innerHTML = '';
 
     const filteredItems = currentCategory === 'all' 
@@ -78,14 +52,10 @@ function renderMenu() {
     filteredItems.forEach(item => {
         menuList.innerHTML += `
             <div class="card" onclick="openModal('${item.id}')">
-                <img src="${item.image}" alt="${item.name}" class="card-img">
-                <div class="card-body">
-                    <h3>${item.name}</h3>
-                    <p class="desc">${item.description}</p>
-                    <div class="card-footer">
-                        <span class="price">$${item.price}</span>
-                        <button class="btn-primary">選擇客製化</button>
-                    </div>
+                <h3 class="card-title">${item.name}</h3>
+                <div class="card-footer">
+                    <span class="price">$${item.price}</span>
+                    <button class="btn-primary">加入</button>
                 </div>
             </div>
         `;
@@ -100,191 +70,71 @@ function filterCategory(category, element) {
     renderMenu();
 }
 
-// 4. 開啟 Modal（分別處理便當與飲料選項）
+// 4. 開啟 Modal (簡化版本，若有客製化需求可於此擴充)
 function openModal(itemId) {
     currentItem = menuItems.find(item => item.id === itemId);
     document.getElementById('modal-item-name').innerText = `${currentItem.name} ($${currentItem.price})`;
-
-    const customContainer = document.getElementById('modal-custom-options');
-    customContainer.innerHTML = ''; 
-
-    if (currentItem.category === 'bento') {
-        let addonsHTML = '<p><strong>加購項目：</strong></p>';
-        currentItem.addons.forEach(addon => {
-            addonsHTML += `
-                <label>
-                    <input type="checkbox" class="addon" value="${addon.price}" data-name="${addon.name}">
-                    ${addon.name} (+${addon.price}元)
-                </label><br>
-            `;
-        });
-
-        let notesHTML = '<p><strong>特別需求：</strong></p>';
-        currentItem.notes.forEach(note => {
-            notesHTML += `
-                <label>
-                    <input type="checkbox" class="note" value="${note}">
-                    ${note}
-                </label><br>
-            `;
-        });
-
-        customContainer.innerHTML = addonsHTML + notesHTML;
-    } else if (currentItem.category === 'drink') {
-        let sweetHTML = '<p><strong>甜度：</strong></p>';
-        currentItem.sweetness.forEach((s, idx) => {
-            sweetHTML += `
-                <label>
-                    <input type="radio" name="sweetness" value="${s}" ${idx === 0 ? 'checked' : ''}>
-                    ${s}
-                </label> &nbsp;
-            `;
-        });
-
-        let iceHTML = '<p><strong>冰塊：</strong></p>';
-        currentItem.ice.forEach((i, idx) => {
-            iceHTML += `
-                <label>
-                    <input type="radio" name="ice" value="${i}" ${idx === 0 ? 'checked' : ''}>
-                    ${i}
-                </label> &nbsp;
-            `;
-        });
-
-        customContainer.innerHTML = sweetHTML + '<br>' + iceHTML;
-    }
-
+    document.getElementById('modal-custom-options').innerHTML = '<p style="color:#666;">確認將此餐點加入購物車？</p>';
     document.getElementById('custom-modal').style.display = 'block';
 }
 
-// 5. 關閉 Modal
 function closeModal() {
     document.getElementById('custom-modal').style.display = 'none';
 }
 
-// 6. 開啟/關閉購物車
 function toggleCart() {
-    const cartSidebar = document.getElementById('cart-sidebar');
-    cartSidebar.style.display = cartSidebar.style.display === 'block' ? 'none' : 'block';
+    const sidebar = document.getElementById('cart-sidebar');
+    sidebar.classList.toggle('open');
 }
 
-// 7. 加入購物車
+// 5. 加入購物車
 function addToCart() {
-    let itemTotal = currentItem.price;
-    let selectedAddons = [];
-    let selectedNotes = [];
-
-    if (currentItem.category === 'bento') {
-        document.querySelectorAll('.addon:checked').forEach(cb => {
-            itemTotal += parseInt(cb.value);
-            selectedAddons.push(cb.getAttribute('data-name'));
-        });
-
-        document.querySelectorAll('.note:checked').forEach(cb => {
-            selectedNotes.push(cb.value);
-        });
-    } else if (currentItem.category === 'drink') {
-        const sweetVal = document.querySelector('input[name="sweetness"]:checked')?.value;
-        const iceVal = document.querySelector('input[name="ice"]:checked')?.value;
-        if (sweetVal) selectedNotes.push(sweetVal);
-        if (iceVal) selectedNotes.push(iceVal);
-    }
-
     cart.push({
         name: currentItem.name,
-        price: itemTotal,
-        addons: selectedAddons,
-        notes: selectedNotes
+        price: currentItem.price
     });
-
     updateCartUI();
     closeModal();
-    alert('已成功加入購物車！');
 }
 
-// 8. 更新購物車 UI
+// 6. 更新購物車 UI
 function updateCartUI() {
     const cartList = document.getElementById('cart-items');
-    const cartCount = document.getElementById('cart-count');
-    const cartTotal = document.getElementById('cart-total');
-
     cartList.innerHTML = '';
     let total = 0;
 
     cart.forEach(item => {
         total += item.price;
-        let details = '';
-        if (item.addons.length > 0) details += `加購: ${item.addons.join(', ')} `;
-        if (item.notes.length > 0) details += `規格/備註: ${item.notes.join(', ')}`;
-
-        cartList.innerHTML += `
-            <li>
-                <strong>${item.name}</strong> - $${item.price}<br>
-                <small style="color:#666;">${details}</small>
-            </li><br>
-        `;
+        cartList.innerHTML += `<li><span>${item.name}</span> <strong>$${item.price}</strong></li>`;
     });
 
-    cartCount.innerText = cart.length;
-    cartTotal.innerText = total;
+    document.getElementById('cart-count').innerText = cart.length;
+    document.getElementById('cart-total').innerText = total;
 }
 
-// 9. 結帳與付款
+// 7. 結帳與生成取餐編號 (移除學號輸入與付款選項)
 function checkout() {
     if (cart.length === 0) {
         alert('購物車是空的喔！');
         return;
     }
-    toggleCart();
+    
+    toggleCart(); // 關閉側欄
+
+    // 設定並顯示順序編號
+    document.getElementById('display-order-no').innerText = `NO. ${orderCounter}`;
     document.getElementById('checkout-modal').style.display = 'block';
+    
+    // 可在此處加入向後端發送訂單的 fetch 邏輯 (原 processPayment 邏輯)
+    // fetch('https://bento-shop.onrender.com/api/orders', { ... })
+    
+    orderCounter++; // 編號遞增
+    cart = []; // 清空購物車
+    updateCartUI();
 }
 
 function closeCheckoutModal() {
     document.getElementById('checkout-modal').style.display = 'none';
-}
-
-// 處理付款並向 Render 後端送出訂單
-async function processPayment() {
-    const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
-    
-    const studentId = prompt("請輸入您的東吳大學學號 (例如: 09123456)：", "09123456");
-    if (!studentId) return;
-
-    alert('系統處理訂單中...');
-
-    try {
-        // 關鍵修正：將網址補上 /orders
-        const response = await fetch('https://bento-shop.onrender.com/api/orders', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                studentId: studentId,
-                cart: cart, 
-                paymentMethod: paymentMethod,
-                orderType: 'online'  // 標示為線上預訂
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`伺服器錯誤，狀態碼: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (paymentMethod === 'linepay') {
-            alert(`訂單(#${data.orderId})已送出！引導至 Line Pay...`);
-        } else {
-            alert(`訂單(#${data.orderId})已成立！請留意叫號通知，至櫃檯付款取餐。`);
-        }
-
-        cart = []; // 清空購物車
-        updateCartUI();
-        closeCheckoutModal();
-
-    } catch (error) {
-        console.error("錯誤:", error);
-        alert("訂單送出失敗，請確認伺服器是否開啟或稍後再試！");
-    }
 }
 
 window.onload = renderMenu;
