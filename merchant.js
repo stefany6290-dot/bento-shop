@@ -1,8 +1,4 @@
-// merchant.js
-
-// merchant.js
-
-// 1. 每 3 秒自動向 SQLite 伺服器抓取一次最新訂單
+// 每 3 秒自動向伺服器抓取一次最新訂單
 setInterval(fetchOrders, 3000);
 fetchOrders(); // 網頁剛載入時先抓一次
 
@@ -31,14 +27,14 @@ async function fetchOrders() {
     }
 }
 
-// 2. 渲染看板
+// 渲染看板
 function renderKanban(orders) {
     document.getElementById('list-pending').innerHTML = '';
     document.getElementById('list-preparing').innerHTML = '';
     document.getElementById('list-ready').innerHTML = '';
 
     orders.forEach(order => {
-        // 安全解析 cart_items (若為字串則自動轉為 Array)
+        // 安全解析 cart_items
         let cartItems = [];
         try {
             cartItems = typeof order.cart_items === 'string' 
@@ -48,26 +44,18 @@ function renderKanban(orders) {
             console.error("解析購物車資料失敗:", e);
         }
 
-        // 處理購物車內容
+        // 處理購物車內容 (簡化為品項名稱，配合新菜單)
         let itemsHtml = cartItems.map(item => {
-            let details = [];
-            if (item.addons) details.push(...item.addons);
-            if (item.notes) details.push(...item.notes);
-            return `<div>• ${item.name} <br><small>(${details.join(', ') || '無備註'})</small></div>`;
+            return `<div>🍱 ${item.name}</div>`;
         }).join('');
 
-        // 判斷線上或現場訂單標籤
-        const typeBadge = order.order_type === 'online' 
-            ? '<span style="background: #28a745; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight:bold;">📱 線上預訂</span>'
-            : '<span style="background: #fd7e14; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight:bold;">🚶‍♂️ 現場點餐</span>';
+        // 建立卡片 (將原本的學號改為取餐編號/訂單編號顯示)
+        const displayId = order.student_id || `NO.${order.id}`;
 
-        // 建立卡片
         const cardHtml = `
             <div class="order-card">
-                <h3>學號: ${order.student_id} <span style="color:#d32f2f;">#${order.id}</span></h3>
-                <div style="margin-bottom: 10px;">${typeBadge}</div>
+                <h3>取餐編號 <span class="order-number">#${displayId}</span></h3>
                 <div class="order-items">${itemsHtml}</div>
-                <p><strong>付款:</strong> ${order.payment_method === 'linepay' ? '💚 Line Pay' : '💵 現場付款'}</p>
                 <small style="color:gray;">下單時間: ${new Date(order.created_at).toLocaleTimeString()}</small>
                 <br><br>
                 ${getActionButton(order.id, order.status)}
@@ -85,14 +73,21 @@ function renderKanban(orders) {
     });
 }
 
+// 根據訂單狀態顯示對應按鈕與顏色
 function getActionButton(id, status) {
-    if (status === 'pending') return `<button class="btn-action" onclick="updateStatus(${id}, 'preparing')">確認接單 (開始製作)</button>`;
-    if (status === 'preparing') return `<button class="btn-action" onclick="updateStatus(${id}, 'ready')">製作完成 (通知取餐)</button>`;
-    if (status === 'ready') return `<button class="btn-action" style="background:#6c757d;" onclick="updateStatus(${id}, 'completed')">學生已取餐 (結案)</button>`;
+    if (status === 'pending') {
+        return `<button class="btn-action" onclick="updateStatus(${id}, 'preparing')">確認接單 (開始製作)</button>`;
+    }
+    if (status === 'preparing') {
+        return `<button class="btn-action ready-btn" onclick="updateStatus(${id}, 'ready')">製作完成 (可取餐)</button>`;
+    }
+    if (status === 'ready') {
+        return `<button class="btn-action completed-btn" onclick="updateStatus(${id}, 'completed')">客人已取餐 (結案)</button>`;
+    }
     return '';
 }
 
-// 3. 更新訂單狀態 (修正斜線 Bug)
+// 更新訂單狀態
 window.updateStatus = async function(id, newStatus) {
     try {
         const response = await fetch(`https://bento-shop.onrender.com/api/orders/${id}`, {

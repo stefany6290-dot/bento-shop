@@ -1,12 +1,22 @@
-body { font-family: sans-serif; margin: 0; background-color: #f1f3f5; color: #333; }
-header { background-color: #d32f2f; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f8f9fa; color: #343a40; }
+header { background-color: #007bff; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 header h1 { margin: 0; font-size: 22px; }
+.store-status { font-weight: bold; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; }
+
 .kanban-board { display: flex; gap: 20px; padding: 20px; height: calc(100vh - 100px); }
 .column { flex: 1; background: #e9ecef; border-radius: 8px; display: flex; flex-direction: column; }
-.column h2 { text-align: center; font-size: 18px; padding: 15px; margin: 0; background: #dee2e6; border-radius: 8px 8px 0 0; }
+.column h2 { text-align: center; font-size: 18px; padding: 15px; margin: 0; background: #dee2e6; border-radius: 8px 8px 0 0; color: #495057; }
+.count { background: #007bff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 14px; margin-left: 5px; }
+
 .order-list { padding: 10px; overflow-y: auto; flex-grow: 1; }
-.order-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border-left: 5px solid #d32f2f; }
-.order-card h3 { margin: 0 0 10px 0; font-size: 16px; display: flex; justify-content: space-between;}
-.order-items { font-size: 14px; margin-bottom: 10px; color: #555; }
-.btn-action { width: 100%; padding: 10px; border: none; border-radius: 4px; background: #2e7d32; color: white; cursor: pointer; font-weight: bold; font-size: 16px; }
-.btn-action:hover { background: #1b5e20; }
+.order-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #007bff; }
+.order-card h3 { margin: 0 0 10px 0; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
+.order-number { font-size: 20px; color: #ff851b; font-weight: 900; }
+.order-items { font-size: 15px; margin-bottom: 10px; color: #333; line-height: 1.5; font-weight: bold; }
+
+.btn-action { width: 100%; padding: 10px; border: none; border-radius: 4px; background: #28a745; color: white; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+.btn-action:hover { background: #218838; }
+.btn-action.ready-btn { background: #ff851b; }
+.btn-action.ready-btn:hover { background: #e07012; }
+.btn-action.completed-btn { background: #6c757d; }
+.btn-action.completed-btn:hover { background: #5a6268; }
