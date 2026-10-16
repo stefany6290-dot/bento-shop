@@ -1,12 +1,41 @@
+// 完整丼物園菜單 (共 29 項)
 const menuItems = [
+    // 🍚 丼飯類 ($71)
     { id: 'don1', name: '燒肉丼', price: 71, category: 'donburi' },
     { id: 'don2', name: '唐揚雞丼', price: 71, category: 'donburi' },
     { id: 'don3', name: '日式豬排丼', price: 71, category: 'donburi' },
+    { id: 'don4', name: '蒲燒鯛魚丼', price: 71, category: 'donburi' },
+    { id: 'don5', name: '親子丼', price: 71, category: 'donburi' },
+    { id: 'don6', name: '脆雞丼', price: 71, category: 'donburi' },
+    { id: 'don7', name: '黃金雞排丼', price: 71, category: 'donburi' },
+
+    // 🍱 定食類
     { id: 'tei1', name: '日式炸豬排定食', price: 86, category: 'teishoku' },
     { id: 'tei2', name: '燒肉定食', price: 86, category: 'teishoku' },
+    { id: 'tei3', name: '唐揚雞定食', price: 86, category: 'teishoku' },
+    { id: 'tei4', name: '蒲燒鯛魚定食', price: 86, category: 'teishoku' },
+    { id: 'tei5', name: '嫩雞定食', price: 86, category: 'teishoku' },
+    { id: 'tei6', name: '脆雞定食', price: 86, category: 'teishoku' },
+    { id: 'tei7', name: '黃金雞排定食', price: 86, category: 'teishoku' },
+    { id: 'tei8', name: '梅花肉片定食', price: 86, category: 'teishoku' },
+    { id: 'tei9', name: '日式照燒里肌肉排定食', price: 91, category: 'teishoku' },
+    { id: 'tei10', name: '菜飯', price: 56, category: 'teishoku' },
+
+    // 🍛 咖哩類
     { id: 'cur1', name: '燒肉咖哩', price: 96, category: 'curry' },
     { id: 'cur2', name: '唐揚雞咖哩', price: 96, category: 'curry' },
-    { id: 'ris1', name: '黑胡椒牛柳燴飯', price: 101, category: 'risotto' }
+    { id: 'cur3', name: '日式豬排咖哩', price: 96, category: 'curry' },
+    { id: 'cur4', name: '蒲燒鯛魚咖哩', price: 96, category: 'curry' },
+    { id: 'cur5', name: '嫩雞咖哩', price: 96, category: 'curry' },
+    { id: 'cur6', name: '脆雞咖哩', price: 96, category: 'curry' },
+    { id: 'cur7', name: '黃金雞排咖哩', price: 96, category: 'curry' },
+    { id: 'cur8', name: '梅花肉片咖哩', price: 96, category: 'curry' },
+    { id: 'cur9', name: '日式照燒里肌肉排咖哩', price: 96, category: 'curry' },
+    { id: 'cur10', name: '原味咖哩飯', price: 66, category: 'curry' },
+
+    // 🍲 燴飯類
+    { id: 'ris1', name: '黑胡椒牛柳燴飯', price: 101, category: 'risotto' },
+    { id: 'ris2', name: '紅燒牛腩燴飯', price: 101, category: 'risotto' }
 ];
 
 let currentCategory = 'all';
@@ -58,46 +87,62 @@ function addToCart() {
     closeModal();
 }
 
-// 更新購物車 UI
+// 加入購物車
+function addToCart() {
+    cart.push({ name: currentItem.name, price: currentItem.price });
+    updateCartUI();
+    closeModal();
+}
+
+// 💡 解決問題2：新增線上點餐的刪除品項功能
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCartUI();
+}
+
+// 覆寫原本的更新購物車 UI，加入可愛的刪除按鈕
 function updateCartUI() {
     const cartList = document.getElementById('cart-items');
     cartList.innerHTML = '';
     let total = 0;
-    cart.forEach(item => {
+    cart.forEach((item, index) => {
         total += item.price;
-        cartList.innerHTML += `<li><span>${item.name}</span> <span>$${item.price}</span></li>`;
+        cartList.innerHTML += `
+            <li style="display:flex; justify-content:space-between; align-items:center; border-bottom: 2px dashed #F0DDBB; padding-bottom: 15px; margin-bottom: 15px;">
+                <span style="font-weight: bold; color: #5A4A42;">${item.name}</span> 
+                <div>
+                    <span style="font-weight: bold; color: #FF8C42; margin-right: 10px;">$${item.price}</span>
+                    <button onclick="removeFromCart(${index})" style="background: #ff4d4f; color: white; border: none; border-radius: 8px; padding: 5px 10px; cursor: pointer; font-weight: bold;">✕ 刪除</button>
+                </div>
+            </li>`;
     });
     document.getElementById('cart-count').innerText = cart.length;
     document.getElementById('cart-total').innerText = total;
 }
 
-// ⚠️ 解決問題2：打開結帳方式選擇視窗
+// 打開結帳方式選擇視窗
 function checkout() {
     if (cart.length === 0) {
         alert('購物車空空的喔！快去挑選美味的便當吧 🍱');
         return;
     }
-    toggleCart(); // 關閉側邊欄
-    document.getElementById('checkout-modal').style.display = 'block'; // 顯示付款選擇視窗
+    toggleCart(); 
+    document.getElementById('checkout-modal').style.display = 'block'; 
 }
 
-// ⚠️ 解決問題1：處理付款並將訂單發送給 Render 廚房後端
+// 處理付款並將訂單發送給 Render 廚房後端
 async function processPayment() {
     const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
     
-    // 讓學生輸入學號作為取餐識別
-    const studentId = prompt("請輸入您的學號或稱呼 (例：09123456 / 王同學)：", "可愛的客人");
-    if (!studentId) return;
-
-    document.getElementById('checkout-modal').style.display = 'none'; // 關閉付款視窗
+    // 移除 prompt 輸入學號的機制
+    document.getElementById('checkout-modal').style.display = 'none'; 
 
     try {
-        // 發送 POST 請求到後廚 API
         const response = await fetch('https://bento-shop.onrender.com/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                studentId: studentId,
+                studentId: '線上預訂', // 傳送預設字串讓後端驗證通過
                 cart: cart, 
                 paymentMethod: paymentMethod,
                 orderType: 'online'
@@ -108,8 +153,9 @@ async function processPayment() {
 
         const data = await response.json();
 
-        // 顯示成功畫面與後端回傳的訂單編號
-        document.getElementById('display-order-no').innerText = `NO. ${data.orderId || Math.floor(Math.random() * 100)}`;
+        // 💡 確保線上單號顯示為「線上-XXX」
+        const onlineNumber = '線上-' + String(data.orderId).padStart(3, '0');
+        document.getElementById('display-order-no').innerText = onlineNumber;
         document.getElementById('success-modal').style.display = 'block';
 
         // 清空購物車
@@ -120,6 +166,7 @@ async function processPayment() {
         console.error("錯誤:", error);
         alert("點餐失敗！請確認 Render 伺服器是否已經啟動 🥺");
     }
+
 }
 
 window.onload = renderMenu;

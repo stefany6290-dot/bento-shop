@@ -1,22 +1,31 @@
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #f8f9fa; color: #343a40; }
-header { background-color: #007bff; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-header h1 { margin: 0; font-size: 22px; }
-.store-status { font-weight: bold; background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; }
+:root {
+    --bg-color: #FFF5E1; 
+    --surface-color: #FFFFFF;
+    --text-main: #5A4A42; 
+    --primary-color: #FF8C42; 
+    --primary-hover: #FF6B00;
+}
+
+body { font-family: 'Nunito', 'Segoe UI', '微軟正黑體', sans-serif; margin: 0; background-color: var(--bg-color); color: var(--text-main); }
+header { background-color: var(--primary-color); color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(255,140,66,0.2); }
+header h1 { margin: 0; font-size: 24px; font-weight: 900; }
+.store-status { font-weight: bold; background: rgba(255,255,255,0.2); padding: 8px 15px; border-radius: 20px; }
 
 .kanban-board { display: flex; gap: 20px; padding: 20px; height: calc(100vh - 100px); }
-.column { flex: 1; background: #e9ecef; border-radius: 8px; display: flex; flex-direction: column; }
-.column h2 { text-align: center; font-size: 18px; padding: 15px; margin: 0; background: #dee2e6; border-radius: 8px 8px 0 0; color: #495057; }
-.count { background: #007bff; color: white; padding: 2px 8px; border-radius: 12px; font-size: 14px; margin-left: 5px; }
+.column { flex: 1; background: #F8F1E5; border-radius: 20px; display: flex; flex-direction: column; border: 3px solid #F0DDBB; }
+.column h2 { text-align: center; font-size: 18px; padding: 15px; margin: 0; background: #F0DDBB; border-radius: 16px 16px 0 0; color: var(--text-main); font-weight: 900; }
+.count { background: var(--primary-color); color: white; padding: 2px 10px; border-radius: 12px; font-size: 14px; margin-left: 5px; }
 
-.order-list { padding: 10px; overflow-y: auto; flex-grow: 1; }
-.order-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #007bff; }
-.order-card h3 { margin: 0 0 10px 0; font-size: 16px; display: flex; justify-content: space-between; align-items: center; }
-.order-number { font-size: 20px; color: #ff851b; font-weight: 900; }
-.order-items { font-size: 15px; margin-bottom: 10px; color: #333; line-height: 1.5; font-weight: bold; }
+.order-list { padding: 15px; overflow-y: auto; flex-grow: 1; }
+.order-card { background: white; padding: 20px; border-radius: 16px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(90,74,66,0.08); border: 2px solid transparent; transition: 0.2s; }
+.order-card:hover { border-color: var(--primary-color); transform: translateY(-3px); }
+.order-card h3 { margin: 0 0 10px 0; font-size: 16px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
+.order-number { font-size: 24px; color: var(--primary-color); font-weight: 900; background: #FFF5E1; padding: 4px 10px; border-radius: 10px; }
+.order-items { font-size: 16px; margin-bottom: 10px; color: #5A4A42; line-height: 1.6; font-weight: bold; }
 
-.btn-action { width: 100%; padding: 10px; border: none; border-radius: 4px; background: #28a745; color: white; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
-.btn-action:hover { background: #218838; }
-.btn-action.ready-btn { background: #ff851b; }
-.btn-action.ready-btn:hover { background: #e07012; }
-.btn-action.completed-btn { background: #6c757d; }
-.btn-action.completed-btn:hover { background: #5a6268; }
+.btn-action { width: 100%; padding: 12px; border: none; border-radius: 12px; background: #06D6A0; color: white; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; box-shadow: 0 4px 0px #05B386; }
+.btn-action:hover { transform: translateY(2px); box-shadow: 0 2px 0px #05B386; }
+.btn-action.ready-btn { background: var(--primary-color); box-shadow: 0 4px 0px var(--primary-hover); }
+.btn-action.ready-btn:hover { transform: translateY(2px); box-shadow: 0 2px 0px var(--primary-hover); }
+.btn-action.completed-btn { background: #9E897E; box-shadow: 0 4px 0px #7D6C63; }
+.btn-action.completed-btn:hover { transform: translateY(2px); box-shadow: 0 2px 0px #7D6C63; }

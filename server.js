@@ -33,8 +33,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
 
 // 1. 取得最新訂單 (GET /api/orders)
 app.get('/api/orders', (req, res) => {
-    // 為了減輕伺服器負擔，只撈取尚未「結案 (completed)」的訂單，並由新到舊排序
-    const sql = `SELECT * FROM orders WHERE status != 'completed' ORDER BY id DESC`;
+    // 將 DESC 改為 ASC，讓先下單的排在最上面
+    const sql = `SELECT * FROM orders WHERE status != 'completed' ORDER BY id ASC`;
     db.all(sql, [], (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });

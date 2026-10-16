@@ -1,12 +1,11 @@
 :root {
-    --bg-color: #FFF5E1; /* 溫暖的米黃色背景 */
+    --bg-color: #FFF5E1; 
     --surface-color: #FFFFFF;
-    --text-main: #5A4A42; /* 柔和的深棕色 */
+    --text-main: #5A4A42; 
     --text-muted: #9E897E;
-    --primary-color: #FF8C42; /* 食慾感滿滿的橘色 */
+    --primary-color: #FF8C42; 
     --primary-hover: #FF6B00;
     --accent-yellow: #FFD166;
-    --accent-green: #06D6A0;
 }
 
 body { 
@@ -15,7 +14,7 @@ body {
     color: var(--text-main); 
     margin: 0; 
     background-image: radial-gradient(#FFD166 1px, transparent 1px);
-    background-size: 30px 30px; /* 可愛的小圓點背景 */
+    background-size: 30px 30px; 
 }
 
 /* 頂部導覽列 */
@@ -40,7 +39,7 @@ body {
     padding: 10px 20px; 
     border-radius: 25px; 
     transition: 0.2s; 
-    box-shadow: 0 4px 0px #E5B345; /* Ｑ彈按鈕陰影 */
+    box-shadow: 0 4px 0px #E5B345; 
 }
 .cart-icon:hover { transform: translateY(2px); box-shadow: 0 2px 0px #E5B345; }
 
@@ -71,7 +70,7 @@ body {
     transform: scale(1.05);
 }
 
-/* 菜單卡片 (圓潤Ｑ彈) */
+/* 菜單卡片 */
 .menu-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 25px; }
 .card { 
     background: var(--surface-color); 
@@ -109,4 +108,65 @@ body {
     color: var(--text-main); 
     border: none; 
     padding: 12px 20px; 
-    font-size: 1
+    font-size: 16px; 
+    font-weight: bold;
+    border-radius: 20px; 
+    cursor: pointer; 
+    box-shadow: 0 4px 0px #D5C8B8;
+}
+.full-width { width: 100%; box-sizing: border-box; }
+.mt-20 { margin-top: 20px; }
+
+/* 購物車側邊欄 (預設隱藏在畫面右側外) */
+.cart-sidebar { 
+    position: fixed; right: -400px; top: 0; width: 350px; height: 100%; 
+    background: var(--surface-color); box-shadow: -5px 0 25px rgba(0,0,0,0.1); 
+    transition: right 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    z-index: 1000; display: flex; flex-direction: column; border-left: 4px solid var(--primary-color);
+}
+.cart-sidebar.open { right: 0; }
+.sidebar-header { padding: 20px; background: var(--bg-color); display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #F0DDBB; }
+.sidebar-header h3 { margin: 0; font-size: 18px; font-weight: 800; color: var(--primary-color); }
+.close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-main); font-weight: bold;}
+.cart-items-list { padding: 20px; overflow-y: auto; flex-grow: 1; list-style: none; margin: 0; }
+.cart-items-list li { border-bottom: 2px dashed #F0DDBB; padding-bottom: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; font-weight: bold;}
+.sidebar-footer { padding: 20px; border-top: 3px solid #F0DDBB; background: var(--bg-color); }
+.total-display { font-size: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; font-weight: 900; color: var(--primary-color);}
+
+/* ★ 彈出視窗關鍵設定 (預設 display: none 隱藏) ★ */
+.modal { 
+    display: none; 
+    position: fixed; 
+    z-index: 1100; 
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(90, 74, 66, 0.5); 
+    backdrop-filter: blur(4px); 
+}
+.modal-content { 
+    background: var(--surface-color); 
+    margin: 15% auto; 
+    padding: 30px; 
+    width: 90%; 
+    max-width: 400px; 
+    border-radius: 24px; 
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+    border: 4px solid var(--primary-color);
+}
+.modal-content h3 { margin-top: 0; font-size: 20px; font-weight: 800; color: var(--primary-color); text-align: center;}
+.modal-actions { display: flex; gap: 15px; justify-content: space-between; }
+.modal-actions button { flex: 1; }
+
+/* 結帳與付款選項 */
+.payment-options label {
+    display: block; background: #F8F1E5; padding: 15px; margin: 10px 0;
+    border-radius: 15px; cursor: pointer; font-weight: bold; transition: 0.2s; border: 2px solid transparent;
+}
+.payment-options label:hover { background: #FFF5E1; border-color: var(--primary-color); }
+.payment-options input[type="radio"] { transform: scale(1.3); margin-right: 10px; accent-color: var(--primary-color);}
+
+/* 成功畫面 */
+.text-center { text-align: center; }
+.big-order-number { font-size: 48px; font-weight: 900; color: var(--primary-color); margin: 10px 0 20px 0; background: #FFF5E1; border-radius: 20px; padding: 10px;}
