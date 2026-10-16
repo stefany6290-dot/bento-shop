@@ -3,188 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>現場點餐系統 (櫃檯專用)</title>
+    <title>丼物園 - 現場點餐系統 (櫃檯專用)</title>
+    <!-- 共用前台的樣式表 -->
     <link rel="stylesheet" href="style.css">
     <style>
-        /* 整體容器佈局 */
-        .pos-container {
-            display: flex;
-            gap: 20px;
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-            align-items: flex-start;
-        }
-
-        /* 左側：菜單區塊 */
-        .menu-section {
-            flex: 1;
-        }
-
-        /* 菜單品項從左到右橫向並排 */
-        #menu-list.menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        #menu-list .card {
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        #menu-list .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        /* 右側：購物籃區塊 (固定不動) */
-        .cart-section {
-            width: 320px;
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 20px;
-            max-height: calc(100vh - 40px);
-            display: flex;
-            flex-direction: column;
-        }
-
-        #cart-items {
-            overflow-y: auto;
-            flex-grow: 1;
-            max-height: 350px;
-            padding-right: 5px;
-            list-style: none;
-            padding-left: 0;
-        }
-
-        /* 模擬按鈕樣式 */
-        .sim-btn {
-            margin-top: 15px;
-            width: 100%;
-            background: #e67e22;
-            color: white;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: bold;
-        }
-
-        .sim-btn:hover {
-            background: #d35400;
-        }
-
-        /* 客製化 Modal 視窗基本樣式 */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-        .modal-content {
-            background-color: #fff;
-            margin: 10% auto;
-            padding: 20px;
-            width: 90%;
-            max-width: 450px;
-            border-radius: 8px;
-            position: relative;
-        }
-        .close-btn {
-            position: absolute;
-            right: 15px;
-            top: 10px;
-            font-size: 24px;
-            cursor: pointer;
-        }
+        /* POS 專屬佈局 (覆蓋部分前台樣式以適應櫃檯大螢幕) */
+        body { background-color: #e9ecef; margin: 0; overflow: hidden; }
+        .pos-container { display: flex; gap: 20px; padding: 20px; max-width: 1600px; margin: 0 auto; align-items: flex-start; height: 100vh; box-sizing: border-box; }
+        
+        .menu-section { flex: 1; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow-y: auto; height: calc(100vh - 40px); }
+        .cart-section { width: 350px; background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; height: calc(100vh - 40px); }
+        
+        #cart-items { overflow-y: auto; flex-grow: 1; list-style: none; padding: 0; margin: 15px 0; border-top: 1px solid #dee2e6; border-bottom: 1px solid #dee2e6; }
+        #cart-items li { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed #eee; font-size: 16px; font-weight: bold; color: #343a40; }
+        
+        .pos-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f8f9fa; padding-bottom: 15px; }
+        .pos-header h2 { margin: 0; color: #007bff; font-size: 24px; }
+        
+        .total-area { font-size: 28px; font-weight: bold; text-align: right; color: #ff851b; margin-bottom: 15px; }
+        .checkout-btn { background: #28a745; color: white; border: none; padding: 18px; border-radius: 8px; font-size: 20px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; box-shadow: 0 4px 6px rgba(40,167,69,0.2); }
+        .checkout-btn:hover { background: #218838; transform: translateY(-2px); }
+        
+        /* 隱藏前台用不到的元素 (購物車懸浮按鈕、置頂導覽列) */
+        .main-header, .cart-icon, .cart-sidebar { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="pos-container">
-        <!-- 左側：菜單區塊 (由左至右橫向排列) -->
-        <div class="menu-section">
-            <h2>🚶‍♂️ 現場點餐系統 (櫃檯專用)</h2>
-            <div id="menu-list" class="menu-grid"></div>
-        </div>
-
-        <!-- 右側：現場購物車與結帳 (固定於右上角，ID 統一為 cart-items 與 cart-total) -->
-        <div class="cart-section">
-            <h3>🛒 目前訂單 (<span id="cart-count">0</span>)</h3>
-            <ul id="cart-items"></ul>
-            <hr>
-            <h4>總計: $<span id="cart-total">0</span></h4>
-            <button class="btn-primary" style="width:100%; margin-top:10px;" onclick="submitPosOrder()">送出現場訂單</button>
-            
-            <button class="sim-btn" onclick="startRushHour()">🚀 模擬 12:00 大下課點餐人潮</button>
-        </div>
-    </div>
-
-    <!-- 客製化選單 Modal (解決點擊品項無法選擇客製化的關鍵結構) -->
+    <!-- 共用的客製化彈出視窗 (沿用 script.js 邏輯) -->
     <div id="custom-modal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <h3 id="modal-item-name">餐點客製化</h3>
-            <hr>
+            <h3 id="modal-item-name">品項名稱</h3>
             <div id="modal-custom-options"></div>
-            <br>
-            <button class="btn-primary" style="width: 100%;" onclick="addToCart()">加入購物車</button>
+            <div class="modal-actions mt-20">
+                <button onclick="closeModal()" class="btn-secondary">取消</button>
+                <button onclick="addToCart()" class="btn-primary">加入訂單</button>
+            </div>
         </div>
     </div>
 
-    <!-- 載入邏輯腳本 -->
+    <div class="pos-container">
+        <!-- 左側：菜單區塊 -->
+        <div class="menu-section">
+            <div class="pos-header">
+                <h2>🖥️ 櫃檯現場點餐 (POS)</h2>
+                <div style="font-weight: bold; color: #6c757d;">目前單號：<span id="current-queue-display" style="color: #007bff;">現場-001</span></div>
+            </div>
+            
+            <!-- 分頁按鈕區域 -->
+            <div class="category-tabs">
+                <button class="tab-btn active" onclick="filterCategory('all', this)">全部</button>
+                <button class="tab-btn" onclick="filterCategory('donburi', this)">🍚 丼飯</button>
+                <button class="tab-btn" onclick="filterCategory('teishoku', this)">🍱 定食</button>
+                <button class="tab-btn" onclick="filterCategory('curry', this)">🍛 咖哩</button>
+                <button class="tab-btn" onclick="filterCategory('risotto', this)">🍲 燴飯</button>
+            </div>
+
+            <!-- 菜單區域 (由 script.js 自動渲染) -->
+            <div id="menu-list" class="menu-list"></div>
+        </div>
+
+        <!-- 右側：購物籃與結帳區塊 -->
+        <div class="cart-section">
+            <h3 style="margin-top:0; color: #343a40;">🛒 目前訂單 (<span id="cart-count">0</span>)</h3>
+            <ul id="cart-items"></ul>
+            <div class="total-area">
+                總計: $<span id="cart-total">0</span>
+            </div>
+            <button class="checkout-btn" onclick="submitPosOrder()">結帳並送出廚房</button>
+        </div>
+    </div>
+
+    <!-- 載入前台相同的菜單邏輯 -->
     <script src="script.js"></script>
-    <script src="simulate.js"></script>
-
+    
+    <!-- POS 專屬連線邏輯 -->
     <script>
-        // 頁面載入完成後自動渲染菜單
-        window.addEventListener('DOMContentLoaded', () => {
-            if (typeof renderMenu === 'function') {
-                renderMenu();
-            }
-        });
+        let posOrderCounter = 1;
 
-        // 現場送出訂單邏輯 (連線至 Render 雲端 API)
+        // 覆寫 updateCartUI 讓它更適合 POS 簡潔顯示
+        function updateCartUI() {
+            const cartList = document.getElementById('cart-items');
+            cartList.innerHTML = '';
+            let total = 0;
+
+            cart.forEach(item => {
+                total += item.price;
+                cartList.innerHTML += `<li><span>${item.name}</span> <span>$${item.price}</span></li>`;
+            });
+
+            document.getElementById('cart-count').innerText = cart.length;
+            document.getElementById('cart-total').innerText = total;
+            document.getElementById('current-queue-display').innerText = '現場-' + String(posOrderCounter).padStart(3, '0');
+        }
+
+        // 送出現場訂單至後端
         async function submitPosOrder() {
             if (!cart || cart.length === 0) {
                 alert("請先選擇餐點！");
                 return;
             }
 
-            const studentId = '現場排隊客-' + Math.floor(1000 + Math.random() * 9000);
+            const queueNumber = '現場-' + String(posOrderCounter).padStart(3, '0');
 
             try {
                 const response = await fetch('https://bento-shop.onrender.com/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        studentId: studentId,
-                        cart: cart,
-                        paymentMethod: 'cash',  // 現場預設現金付款
-                        orderType: 'onsite'     // 標示為現場訂單
+                        student_id: queueNumber,  // 將取餐號碼存入 student_id 欄位供廚房看版顯示
+                        cart_items: JSON.stringify(cart),
+                        payment_method: 'cash',
+                        order_type: 'onsite'
                     })
                 });
 
                 if (response.ok) {
-                    alert('✅ 現場訂單已成功送出！請查看廚房看板。');
-                    cart = []; // 清空購物車
-                    if (typeof updateCartUI === 'function') updateCartUI();
+                    alert(`✅ 結帳成功！請向客人收費並告知取餐號碼：【 ${queueNumber} 】\n訂單已同步至廚房看板。`);
+                    posOrderCounter++; 
+                    cart = []; 
+                    updateCartUI(); 
                 } else {
                     alert('❌ 送出失敗，狀態碼：' + response.status);
                 }
             } catch (error) {
                 console.error("錯誤:", error);
-                alert("無法連線至伺服器，請確認伺服器狀態！");
+                alert("無法連線至伺服器。若為本地測試，將直接清空購物車。");
+                posOrderCounter++; 
+                cart = []; 
+                updateCartUI();
             }
         }
     </script>
