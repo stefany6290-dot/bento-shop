@@ -3,45 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>丼物園 Donburi</title>
+    <title>丼物園 - 日系便當店</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header class="main-header">
         <div class="brand-logo">
-            <h1>丼物園 Donburi</h1>
+            <h1>🍱 丼物園 Donburi</h1>
         </div>
         <div class="cart-icon" onclick="toggleCart()">
-            Cart (<span id="cart-count">0</span>)
+            🛒 購物車 (<span id="cart-count">0</span>)
         </div>
     </header>
 
     <main class="menu-container">
-        <!-- 簡約底線分類標籤 -->
+        <!-- 圓潤分類標籤 -->
         <div class="category-tabs">
-            <button class="tab-btn active" onclick="filterCategory('all', this)">全部</button>
-            <button class="tab-btn" onclick="filterCategory('donburi', this)">丼飯</button>
-            <button class="tab-btn" onclick="filterCategory('teishoku', this)">定食</button>
-            <button class="tab-btn" onclick="filterCategory('curry', this)">咖哩</button>
-            <button class="tab-btn" onclick="filterCategory('risotto', this)">燴飯</button>
+            <button class="tab-btn active" onclick="filterCategory('all', this)">全部好料</button>
+            <button class="tab-btn" onclick="filterCategory('donburi', this)">🍚 丼飯</button>
+            <button class="tab-btn" onclick="filterCategory('teishoku', this)">🍱 定食</button>
+            <button class="tab-btn" onclick="filterCategory('curry', this)">🍛 咖哩</button>
+            <button class="tab-btn" onclick="filterCategory('risotto', this)">🍲 燴飯</button>
         </div>
 
         <div id="menu-list" class="menu-list"></div>
     </main>
 
-    <!-- 極簡側邊欄 -->
+    <!-- 購物車側邊欄 -->
     <div id="cart-sidebar" class="cart-sidebar">
         <div class="sidebar-header">
-            <h3>Order Summary</h3>
+            <h3>🛒 你的餐點</h3>
             <button class="close-btn" onclick="toggleCart()">✕</button>
         </div>
         <ul id="cart-items" class="cart-items-list"></ul>
         <div class="sidebar-footer">
             <div class="total-display">
-                <span>Total</span>
-                <span>NT$ <span id="cart-total">0</span></span>
+                <span>總計</span>
+                <span>$<span id="cart-total">0</span></span>
             </div>
-            <button class="btn-primary" onclick="checkout()">Checkout</button>
+            <button class="btn-primary full-width" onclick="checkout()">去結帳 🏃‍♂️</button>
         </div>
     </div>
 
@@ -49,23 +49,46 @@
     <div id="custom-modal" class="modal">
         <div class="modal-content">
             <h3 id="modal-item-name">品項名稱</h3>
-            <div id="modal-custom-options" style="font-size: 14px; color: #666; margin-bottom: 20px;"></div>
+            <div id="modal-custom-options" style="text-align: center; color: #9E897E; margin: 20px 0; font-weight: bold;">確定要將這份美味加入購物車嗎？🤤</div>
             <div class="modal-actions">
-                <button onclick="closeModal()" class="btn-secondary" style="width: 50%;">Cancel</button>
-                <button onclick="addToCart()" class="btn-primary" style="width: 50%;">Add</button>
+                <button onclick="closeModal()" class="btn-secondary">先不要</button>
+                <button onclick="addToCart()" class="btn-primary">加入！</button>
             </div>
         </div>
     </div>
 
-    <!-- 結帳成功畫面 -->
+    <!-- ⚠️ 解決問題2：結帳付款方式視窗 -->
     <div id="checkout-modal" class="modal">
         <div class="modal-content text-center">
-            <h3 style="border:none; padding:0; margin-bottom:10px;">Order Confirmed</h3>
-            <div class="order-number-title">Pickup Number</div>
-            <div class="big-order-number" id="display-order-no">001</div>
-            <p class="payment-instruction">請於取餐時出示本畫面並結帳</p>
+            <h3>👛 選擇付款方式</h3>
+            <p style="color: #9E897E; font-weight: bold;">請告訴我們你要怎麼結帳呢？</p>
+            <div class="payment-options">
+                <label>
+                    <input type="radio" name="payment" value="linepay" checked> 💚 LINE Pay (線上支付)
+                </label>
+                <label>
+                    <input type="radio" name="payment" value="cash"> 💴 現場付現 (取餐時付款)
+                </label>
+            </div>
             <div class="modal-actions mt-20">
-                <button onclick="closeCheckoutModal()" class="btn-primary" style="width: 100%;">Done</button>
+                <button onclick="closeCheckoutModal()" class="btn-secondary">返回</button>
+                <!-- 點擊後執行 processPayment 發送給後廚 -->
+                <button onclick="processPayment()" class="btn-primary">確認送出 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 成功點餐取餐號碼畫面 -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content text-center">
+            <h3>🎉 點餐成功！</h3>
+            <p style="font-weight: bold; color: #9E897E;">後廚已經收到你的訂單囉 👨‍🍳</p>
+            <div class="big-order-number" id="display-order-no">NO. 1</div>
+            <p style="background: #FFD166; padding: 10px; border-radius: 10px; font-weight: bold; color: #5A4A42;">
+                💡 取餐時請出示此畫面
+            </p>
+            <div class="modal-actions mt-20">
+                <button onclick="closeSuccessModal()" class="btn-primary full-width">我知道了</button>
             </div>
         </div>
     </div>
