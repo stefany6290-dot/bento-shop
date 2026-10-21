@@ -1,42 +1,52 @@
 // 完整丼物園菜單 (共 29 項)
 const menuItems = [
     // 🍚 丼飯類 ($71)
-    { id: 'don1', name: '燒肉丼', price: 71, category: 'donburi' },
-    { id: 'don2', name: '唐揚雞丼', price: 71, category: 'donburi' },
-    { id: 'don3', name: '日式豬排丼', price: 71, category: 'donburi' },
-    { id: 'don4', name: '蒲燒鯛魚丼', price: 71, category: 'donburi' },
-    { id: 'don5', name: '親子丼', price: 71, category: 'donburi' },
-    { id: 'don6', name: '脆雞丼', price: 71, category: 'donburi' },
-    { id: 'don7', name: '黃金雞排丼', price: 71, category: 'donburi' },
+    { id: 'don1', name: '燒肉丼', price: 90, category: 'donburi' },
+    { id: 'don2', name: '唐揚雞丼', price: 90, category: 'donburi' },
+    { id: 'don3', name: '日式豬排丼', price: 90, category: 'donburi' },
+    { id: 'don4', name: '蒲燒鯛魚丼', price: 90, category: 'donburi' },
+    { id: 'don5', name: '親子丼', price: 90, category: 'donburi' },
+    { id: 'don6', name: '脆雞丼', price: 90, category: 'donburi' },
+    { id: 'don7', name: '黃金雞排丼', price: 90, category: 'donburi' },
 
     // 🍱 定食類
-    { id: 'tei1', name: '日式炸豬排定食', price: 86, category: 'teishoku' },
-    { id: 'tei2', name: '燒肉定食', price: 86, category: 'teishoku' },
-    { id: 'tei3', name: '唐揚雞定食', price: 86, category: 'teishoku' },
-    { id: 'tei4', name: '蒲燒鯛魚定食', price: 86, category: 'teishoku' },
-    { id: 'tei5', name: '嫩雞定食', price: 86, category: 'teishoku' },
-    { id: 'tei6', name: '脆雞定食', price: 86, category: 'teishoku' },
-    { id: 'tei7', name: '黃金雞排定食', price: 86, category: 'teishoku' },
-    { id: 'tei8', name: '梅花肉片定食', price: 86, category: 'teishoku' },
-    { id: 'tei9', name: '日式照燒里肌肉排定食', price: 91, category: 'teishoku' },
-    { id: 'tei10', name: '菜飯', price: 56, category: 'teishoku' },
+    { id: 'tei1', name: '日式炸豬排定食', price: 85, category: 'teishoku' },
+    { id: 'tei2', name: '燒肉定食', price: 85, category: 'teishoku' },
+    { id: 'tei3', name: '唐揚雞定食', price: 85, category: 'teishoku' },
+    { id: 'tei4', name: '蒲燒鯛魚定食', price: 85, category: 'teishoku' },
+    { id: 'tei5', name: '嫩雞定食', price: 85, category: 'teishoku' },
+    { id: 'tei6', name: '脆雞定食', price: 85, category: 'teishoku' },
+    { id: 'tei7', name: '黃金雞排定食', price: 85, category: 'teishoku' },
+    { id: 'tei8', name: '梅花肉片定食', price: 85, category: 'teishoku' },
+    { id: 'tei9', name: '日式照燒里肌肉排定食', price: 90, category: 'teishoku' },
+    { id: 'tei10', name: '菜飯', price: 55, category: 'teishoku' },
 
     // 🍛 咖哩類
-    { id: 'cur1', name: '燒肉咖哩', price: 96, category: 'curry' },
-    { id: 'cur2', name: '唐揚雞咖哩', price: 96, category: 'curry' },
-    { id: 'cur3', name: '日式豬排咖哩', price: 96, category: 'curry' },
-    { id: 'cur4', name: '蒲燒鯛魚咖哩', price: 96, category: 'curry' },
-    { id: 'cur5', name: '嫩雞咖哩', price: 96, category: 'curry' },
-    { id: 'cur6', name: '脆雞咖哩', price: 96, category: 'curry' },
-    { id: 'cur7', name: '黃金雞排咖哩', price: 96, category: 'curry' },
-    { id: 'cur8', name: '梅花肉片咖哩', price: 96, category: 'curry' },
-    { id: 'cur9', name: '日式照燒里肌肉排咖哩', price: 96, category: 'curry' },
-    { id: 'cur10', name: '原味咖哩飯', price: 66, category: 'curry' },
+    { id: 'cur1', name: '燒肉咖哩', price: 95, category: 'curry' },
+    { id: 'cur2', name: '唐揚雞咖哩', price: 95, category: 'curry' },
+    { id: 'cur3', name: '日式豬排咖哩', price: 95, category: 'curry' },
+    { id: 'cur4', name: '蒲燒鯛魚咖哩', price: 95, category: 'curry' },
+    { id: 'cur5', name: '嫩雞咖哩', price: 95, category: 'curry' },
+    { id: 'cur6', name: '脆雞咖哩', price: 95, category: 'curry' },
+    { id: 'cur7', name: '黃金雞排咖哩', price: 95, category: 'curry' },
+    { id: 'cur8', name: '梅花肉片咖哩', price: 95, category: 'curry' },
+    { id: 'cur9', name: '日式照燒里肌肉排咖哩', price: 95, category: 'curry' },
+    { id: 'cur10', name: '原味咖哩飯', price: 65, category: 'curry' },
 
     // 🍲 燴飯類
-    { id: 'ris1', name: '黑胡椒牛柳燴飯', price: 101, category: 'risotto' },
-    { id: 'ris2', name: '紅燒牛腩燴飯', price: 101, category: 'risotto' }
+    { id: 'ris1', name: '黑胡椒牛柳燴飯', price: 100, category: 'risotto' },
+    { id: 'ris2', name: '紅燒牛腩燴飯', price: 100, category: 'risotto' }
+    
+   
+]
+ const addOns = [
+    { name: '加唐揚雞', price: 40 },
+    { name: '加嫩雞', price: 40 },
+    { name: '加脆雞', price: 45 },
+    { name: '加黃金雞排', price: 40 }
+
 ];
+   
 
 let currentCategory = 'all';
 let currentItem = null;
@@ -69,29 +79,108 @@ function filterCategory(category, element) {
     renderMenu();
 }
 
-// 開關視窗與購物車
+
 function openModal(itemId) {
     currentItem = menuItems.find(item => item.id === itemId);
-    document.getElementById('modal-item-name').innerText = `${currentItem.name} ($${currentItem.price})`;
+    if (!currentItem) return;
+
+    document.getElementById('modal-item-name').textContent =
+        `${currentItem.name}（原價 $${currentItem.price}）`;
+
+    const optionsContainer =
+        document.getElementById('modal-custom-options');
+
+    optionsContainer.innerHTML = '';
+
+    addOns.forEach((option, index) => {
+        const label = document.createElement('label');
+        label.style.cssText = `
+            display:flex;
+            justify-content:space-between;
+            padding:12px;
+            margin:8px 0;
+            border:1px solid #ddd;
+            border-radius:10px;
+            cursor:pointer;
+        `;
+
+        const left = document.createElement('span');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'addon-checkbox';
+        checkbox.value = index;
+
+        left.append(checkbox, ` ${option.name}`);
+
+        const price = document.createElement('span');
+        price.textContent = `+$${option.price}`;
+
+        label.append(left, price);
+        optionsContainer.appendChild(label);
+    });
+
+    const total = document.createElement('p');
+    total.id = 'custom-total';
+    total.style.cssText =
+        'font-size:22px;font-weight:bold;color:#FF8C42';
+    total.textContent = `總計：$${currentItem.price}`;
+
+    optionsContainer.appendChild(total);
+
+    optionsContainer.onchange = updateCustomTotal;
+
     document.getElementById('custom-modal').style.display = 'block';
 }
-function closeModal() { document.getElementById('custom-modal').style.display = 'none'; }
-function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('open'); }
-function closeCheckoutModal() { document.getElementById('checkout-modal').style.display = 'none'; }
-function closeSuccessModal() { document.getElementById('success-modal').style.display = 'none'; }
 
-// 加入購物車
+function getSelectedAddOns() {
+    return [...document.querySelectorAll(
+        '#modal-custom-options .addon-checkbox:checked'
+    )].map(input => addOns[Number(input.value)]);
+}
+
+function updateCustomTotal() {
+    const extra = getSelectedAddOns().reduce(
+        (sum, option) => sum + option.price, 0
+    );
+
+    document.getElementById('custom-total').textContent =
+        `總計：$${currentItem.price + extra}`;
+}
+
+
 function addToCart() {
-    cart.push({ name: currentItem.name, price: currentItem.price });
+    if (!currentItem) return;
+
+    const selected = getSelectedAddOns();
+
+    const extra = selected.reduce(
+        (sum, option) => sum + option.price, 0
+    );
+
+    const extraNames = selected.map(option => option.name);
+
+    cart.push({
+        name: currentItem.name +
+            (extraNames.length
+                ? `（${extraNames.join('、')}）`
+                : ''),
+        price: currentItem.price + extra
+    });
+
+    // 更新購物車
     updateCartUI();
+
+    // 關閉客製化視窗
     closeModal();
 }
 
-// 加入購物車
-function addToCart() {
-    cart.push({ name: currentItem.name, price: currentItem.price });
-    updateCartUI();
-    closeModal();
+
+function toggleCart() {
+    const sidebar = document.getElementById('cart-sidebar');
+
+    if (!sidebar) return;
+
+    sidebar.classList.toggle('open');
 }
 
 // 💡 解決問題2：新增線上點餐的刪除品項功能
@@ -121,6 +210,21 @@ function updateCartUI() {
 }
 
 // 打開結帳方式選擇視窗
+
+function closeCheckoutModal() {
+    const modal = document.getElementById('checkout-modal');
+
+    if (modal) {
+        modal.style.display = 'none';
+    }
+
+    const sidebar = document.getElementById('cart-sidebar');
+
+    if (sidebar) {
+        sidebar.classList.add('open');
+    }
+}
+
 function checkout() {
     if (cart.length === 0) {
         alert('購物車空空的喔！快去挑選美味的便當吧 🍱');
@@ -357,4 +461,14 @@ window.addEventListener('DOMContentLoaded', () => {
     if (savedOrderId) {
         showTrackingScreen(savedOrderId);
     }
+    
 });
+
+
+function closeModal() {
+    const modal = document.getElementById('custom-modal');
+
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
