@@ -131,88 +131,220 @@ function checkout() {
 }
 
 // 處理付款並將訂單發送給 Render 廚房後端
-async function processPayment() {
-    const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
- let trackingInterval;
 
-// 假設這是在 processPayment 結帳成功後的邏輯
-// const data = await response.json();
-// document.getElementById('checkout-modal').style.display = 'none';
-// showTrackingScreen(data.orderId);
+const API_BASE = 'https://bento-shop.onrender.com';
 
+let trackingInterval = null;
+let trackingInProgress = false;
+
+// 顯示學生訂單追蹤畫面
 function showTrackingScreen(orderId) {
-    // 建立追蹤 UI 並覆蓋整個畫面
-    const trackingUI = document.createElement('div');
-    trackingUI.id = 'tracking-screen';
-    trackingUI.innerHTML = `
-        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,245,225,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-            <h2 style="color:#5A4A42;">您的取餐編號：<br><span style="font-size:48px; color:#FF8C42;">線上-${String(orderId).padStart(3, '0')}</span></h2>
-            <h1 id="live-status" style="color: #FF8C42; font-size: 32px; margin-top:20px;">⏳ 訂單已送入廚房</h1>
-            <p style="color:#9E897E; font-weight:bold; margin-top:10px;">請留意畫面變化，勿關閉此視窗</p>
-        </div>
-    `;
-    document.body.appendChild(trackingUI);
-
-    // 每 3 秒詢問一次最新狀態
-    trackingInterval = setInterval(() => checkOrderStatus(orderId), 3000);
-}
-
-async function checkOrderStatus(orderId) {
-    try {
-        const response = await fetch(`https://bento-shop.onrender.com/api/orders/${orderId}`);
-        const data = await response.json();
-        
-        const statusText = document.getElementById('live-status');
-        
-        if (data.status === 'preparing') {
-            statusText.innerHTML = '🧑‍🍳 商家已接單，餐點製作中...';
-            statusText.style.color = '#06D6A0';
-        } else if (data.status === 'ready') {
-            statusText.innerHTML = '🍱 餐點已完成，請至櫃檯取餐！';
-            statusText.style.color = '#e63946';
-            clearInterval(trackingInterval); // 完成後停止檢查
-        } else if (data.status === 'completed') {
-            document.getElementById('tracking-screen').remove();
-            alert('感謝您的購買，祝您用餐愉快！');
-        }
-    } catch (error) {
-        console.error('狀態更新失敗', error);
+    if (trackingInterval) {
+        clearInterval(trackingInterval);
+        trackingInterval = null;
     }
 
+    const existing = document.getElementById('tracking-screen');
+    if (existing) existing.remove();
+
+    const trackingUI = document.createElement('div');
+    trackingUI.id = 'tracking-screen';
+
+    trackingUI.innerHTML = `
+        <div style="position:fixed; inset:0; background:#FFF5E1;
+            z-index:9999; display:flex; flex-direction:column;
+            align-items:center; justify-content:center;
+            text-align:center; padding:20px;">
+
+            <h2 style="color:#5A4A42;">
+                您的取餐編號
+            </h2>
+
+            <h1 style="font-size:48px; color:#FF8C42;">
+                線上-${String(orderId).padStart(3, '0')}
+            </h1>
+
+            <h2 id="live-status" style="color:#FF8C42;">
+                ⏳ 訂單已送入廚房
+            </h2>
+
+            <p style="color:#9E897E;">
+                系統每 3 秒自動更新訂單狀態
+            </p>
+
+            <button id="close-tracking-btn"
+                style="margin-top:25px; padding:12px 24px;
+                border:none; border-radius:12px;
+                background:#5A4A42; color:white;
+                cursor:pointer;">
+                返回點餐頁面
+            </button>
+        </div>
+    `;
+
+    document.body.appendChild(trackingUI);
+
+    document.getElementById('close-tracking-btn')
+        .addEventListener('click', () => {
+            trackingUI.remove();
+            if (trackingInterval) {
+                clearInterval(trackingInterval);
+                trackingInterval = null;
+            }
+        });
+
+    // 立即查詢一次
+    checkOrderStatus(orderId);
+
+    // 每三秒自動查詢
+    trackingInterval = setInterval(() => {
+        checkOrderStatus(orderId);
+    }, 3000);
 }
-    // 移除 prompt 輸入學號的機制
-    document.getElementById('checkout-modal').style.display = 'none'; 
+
+// 向 Render 查詢最新訂單狀態
+async function checkOrderStatus(orderId) {
+    if (trackingInProgress) return;
+    trackingInProgress = true;
 
     try {
-        const response = await fetch('https://bento-shop.onrender.com/api/orders', {
+        const response = await fetch(
+            `${API_BASE}/api/orders/${orderId}`,
+            { cache: 'no-store' }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        const statusElement = document.getElementById('live-status');
+
+        if (!statusElement) return;
+
+        switch (data.status) {
+            case 'pending':
+                statusElement.textContent = '⏳ 等待店家接單';
+                statusElement.style.color = '#FF8C42';
+                break;
+
+            case 'preparing':
+                statusElement.textContent = '👨‍🍳 商家已接單，餐點製作中';
+                statusElement.style.color = '#06A77D';
+                break;
+
+            case 'ready':
+                statusElement.textContent = '🍱 餐點已完成，請至櫃檯取餐！';
+                statusElement.style.color = '#e63946';
+                break;
+
+            case 'completed':
+                statusElement.textContent = '✅ 訂單已完成，感謝您的購買！';
+                statusElement.style.color = '#06A77D';
+
+                clearInterval(trackingInterval);
+                trackingInterval = null;
+                localStorage.removeItem('currentOrderId');
+                break;
+
+            default:
+                statusElement.textContent = `目前狀態：${data.status}`;
+        }
+
+    } catch (error) {
+        console.error('訂單追蹤失敗：', error);
+        const statusElement = document.getElementById('live-status');
+        if (statusElement) {
+            statusElement.textContent = '⚠️ 連線暫時失敗，系統將自動重試';
+        }
+    } finally {
+        trackingInProgress = false;
+    }
+}
+
+
+if (!statusResponse.ok) {
+    throw new Error('無法確認目前是否開放接單，請稍後再試');
+}
+
+const orderingStatus = await statusResponse.json();
+
+if (orderingStatus.isPaused) {
+    alert('🍱 目前訂單較多，暫停線上點餐，請至現場排隊！');
+    return;
+}
+// 處理付款並建立訂單
+async function processPayment() {
+    const selectedPayment = document.querySelector(
+        'input[name="payment"]:checked'
+    );
+
+    if (!selectedPayment) {
+        alert('請選擇付款方式');
+        return;
+    }
+
+    if (cart.length === 0) {
+        alert('購物車目前沒有商品');
+        return;
+    }
+
+    const paymentMethod = selectedPayment.value;
+
+    try {
+        const response = await fetch(`${API_BASE}/api/orders`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
-                studentId: '線上預訂', // 傳送預設字串讓後端驗證通過
-                cart: cart, 
+                studentId: '線上預訂',
+                cart: cart,
                 paymentMethod: paymentMethod,
                 orderType: 'online'
             })
         });
 
-        if (!response.ok) throw new Error('伺服器錯誤');
-
         const data = await response.json();
 
-        // 💡 確保線上單號顯示為「線上-XXX」
-        const onlineNumber = '線上-' + String(data.orderId).padStart(3, '0');
-        document.getElementById('display-order-no').innerText = onlineNumber;
-        document.getElementById('success-modal').style.display = 'block';
+        if (!response.ok) {
+            throw new Error(data.error || '訂單建立失敗');
+        }
+
+        if (!data.orderId) {
+            throw new Error('伺服器沒有回傳訂單編號');
+        }
+
+        // 保存訂單編號
+        localStorage.setItem('currentOrderId', data.orderId);
+
+        // 關閉結帳畫面
+        document.getElementById('checkout-modal').style.display = 'none';
 
         // 清空購物車
         cart = [];
         updateCartUI();
 
-    } catch (error) {
-        console.error("錯誤:", error);
-        alert("點餐失敗！請確認 Render 伺服器是否已經啟動 🥺");
-    }
+        // 自動顯示訂單追蹤
+        showTrackingScreen(data.orderId);
 
+    } catch (error) {
+        console.error('點餐失敗：', error);
+        alert(`點餐失敗：${error.message}`);
+    }
+    const statusResponse = await fetch(
+    `${API_BASE}/api/ordering-status`,
+    { cache: 'no-store' }
+);
 }
 
-window.onload = renderMenu;
+// 頁面重新開啟時恢復訂單追蹤
+window.addEventListener('DOMContentLoaded', () => {
+    renderMenu();
+
+    const savedOrderId = localStorage.getItem('currentOrderId');
+
+    if (savedOrderId) {
+        showTrackingScreen(savedOrderId);
+    }
+});
