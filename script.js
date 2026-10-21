@@ -263,16 +263,7 @@ async function checkOrderStatus(orderId) {
 }
 
 
-if (!statusResponse.ok) {
-    throw new Error('無法確認目前是否開放接單，請稍後再試');
-}
 
-const orderingStatus = await statusResponse.json();
-
-if (orderingStatus.isPaused) {
-    alert('🍱 目前訂單較多，暫停線上點餐，請至現場排隊！');
-    return;
-}
 // 處理付款並建立訂單
 async function processPayment() {
     const selectedPayment = document.querySelector(
@@ -292,6 +283,24 @@ async function processPayment() {
     const paymentMethod = selectedPayment.value;
 
     try {
+        // 1. 先確認店家是否開放線上接單
+        const statusResponse = await fetch(
+            `${API_BASE}/api/ordering-status`,
+            { cache: 'no-store' }
+        );
+
+        if (!statusResponse.ok) {
+            throw new Error('無法確認目前是否開放接單，請稍後再試');
+        }
+
+        const orderingStatus = await statusResponse.json();
+
+        if (orderingStatus.isPaused) {
+            alert('🍱 目前訂單較多，暫停線上點餐，請至現場排隊！');
+            return;
+        }
+
+        // 2. 店家開放接單，送出訂單
         const response = await fetch(`${API_BASE}/api/orders`, {
             method: 'POST',
             headers: {
@@ -315,30 +324,24 @@ async function processPayment() {
             throw new Error('伺服器沒有回傳訂單編號');
         }
 
-        // 保存訂單編號
+        // 3. 儲存訂單編號
         localStorage.setItem('currentOrderId', data.orderId);
 
-        // 關閉結帳畫面
+        // 4. 關閉結帳視窗
         document.getElementById('checkout-modal').style.display = 'none';
 
-        // 清空購物車
+        // 5. 清空購物車
         cart = [];
         updateCartUI();
 
-        // 自動顯示訂單追蹤
+        // 6. 開始自動追蹤訂單
         showTrackingScreen(data.orderId);
 
     } catch (error) {
         console.error('點餐失敗：', error);
         alert(`點餐失敗：${error.message}`);
     }
-    const statusResponse = await fetch(
-    `${API_BASE}/api/ordering-status`,
-    { cache: 'no-store' }
-);
 }
-
-// 頁面重新開啟時恢復訂單追蹤
 window.addEventListener('DOMContentLoaded', () => {
     renderMenu();
 
