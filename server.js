@@ -98,7 +98,37 @@ app.patch('/api/orders/:id', (req, res) => {
         res.json({ message: '訂單狀態已更新' });
     });
 });
-
+// 💡 解決問題 1：查詢單筆訂單狀態 (供學生端即時追蹤使用)
+app.get('/api/orders/:id', (req, res) => {
+    const { id } = req.params;
+    // 使用 Neon 的 pool.query 語法
+    pool.query(`SELECT status FROM orders WHERE id = $1`, [id], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.rows.length === 0) return res.status(404).json({ error: '找不到訂單' });
+        
+        res.json({ status: result.rows[0].status });
+    });
+});
+// 💡 解決問題 2：供 Dashboard 抓取所有訂單 (包含已結案)
+app.get('/api/all-orders', (req, res) => {
+    const sql = `SELECT * FROM orders ORDER BY created_at DESC`;
+    pool.query(sql, (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        
+        // 解析 JSON 格式的 cart_items 讓 Dashboard 計算營收
+        const formattedRows = result.rows.map(row => {
+            let parsedCart = row.cart_items;
+            try {
+                parsedCart = typeof row.cart_items === 'string' ? JSON.parse(row.cart_items) : row.cart_items;
+            } catch (e) {
+                console.error("Cart items parse error:", e);
+            }
+            return { ...row, cart_items: parsedCart };
+        });
+        
+        res.json(formattedRows);
+    });
+});
 app.listen(PORT, () => {
     console.log(`🚀 伺服器正在 port ${PORT} 運行中...`);
 });
