@@ -9,7 +9,17 @@
 <body>
     <header>
         <h1>🍱 丼物園 - 廚房接單系統</h1>
+   
         <div class="store-status">🟢 營業中 (自動接收線上點餐)</div>
+ <div id="ordering-control">
+    <h2>🍱 線上接單控制</h2>
+
+    <p id="ordering-status-text">
+        正在讀取接單狀態... </p>
+    <button id="toggle-ordering-btn"
+            onclick="toggleOnlineOrdering()">
+        載入中...</button>
+</div>
     </header>
 
     <main class="kanban-board">
@@ -31,6 +41,8 @@
             <div class="order-list" id="list-ready"></div>
         </div>
     </main>
+   
+</div>
 
     <!-- 載入商家端邏輯 -->
     <script src="merchant.js"></script>

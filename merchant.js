@@ -73,4 +73,75 @@ window.updateStatus = async function(id, newStatus) {
         });
         fetchOrders(); 
     } catch (error) { console.error("更新狀態失敗:", error); }
+    // 如果 merchant.js 已經有 API_BASE，請沿用原本的
+const ORDERING_API = 'https://bento-shop.onrender.com';
+
+async function loadOrderingStatus() {
+    try {
+        const response = await fetch(
+            `${ORDERING_API}/api/ordering-status`,
+            { cache: 'no-store' }
+        );
+
+        if (!response.ok) throw new Error('無法取得狀態');
+
+        const data = await response.json();
+        updateOrderingUI(data.isPaused);
+
+    } catch (error) {
+        console.error('接單狀態讀取失敗:', error);
+        document.getElementById('ordering-status-text')
+            .textContent = '⚠️ 無法取得接單狀態';
+    }
+}
+
+function updateOrderingUI(isPaused) {
+    const statusText =
+        document.getElementById('ordering-status-text');
+
+    const button =
+        document.getElementById('toggle-ordering-btn');
+
+    statusText.textContent = isPaused
+        ? '🔴 目前已暫停線上接單'
+        : '🟢 目前正常接收線上訂單';
+
+    button.textContent = isPaused
+        ? '✅ 恢復線上接單'
+        : '⛔ 暫停線上接單';
+
+    button.style.backgroundColor =
+        isPaused ? '#06A77D' : '#E63946';
+
+    button.style.color = 'white';
+}
+
+async function toggleOnlineOrdering() {
+    const button =
+        document.getElementById('toggle-ordering-btn');
+
+    button.disabled = true;
+
+    try {
+        const response = await fetch(
+            `${ORDERING_API}/api/toggle-ordering`,
+            { method: 'POST' }
+        );
+
+        if (!response.ok) throw new Error('切換失敗');
+
+        const data = await response.json();
+        updateOrderingUI(data.isPaused);
+
+    } catch (error) {
+        alert('切換接單狀態失敗，請稍後再試');
+        console.error(error);
+    } finally {
+        button.disabled = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadOrderingStatus();
+});
 };
