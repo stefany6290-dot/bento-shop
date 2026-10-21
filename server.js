@@ -1,98 +1,104 @@
 const express = require('express');
 const cors = require('cors');
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { Pool } = require('pg'); // 💡 替換為 PostgreSQL 套件
 
 const app = express();
-// 讀取 Render 分配的 PORT，若無則預設使用 10000
 const PORT = process.env.PORT || 10000;
 
-// Middleware 設定
-app.use(cors()); // 允許跨域請求（讓 GitHub Pages/Vercel 的前端可以連線）
-app.use(express.json()); // 解析 JSON 格式的請求
+app.use(cors()); 
+app.use(express.json()); 
 
-// 初始化 SQLite 資料庫
-const dbPath = path.resolve(__dirname, 'database.sqlite');
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('無法開啟資料庫:', err.message);
-    } else {
-        console.log('成功連接 SQLite 資料庫。');
-        // 建立訂單資料表 (如果不存在的話)
-        db.run(`CREATE TABLE IF NOT EXISTS orders (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            student_id TEXT,
-            cart_items TEXT,
-            payment_method TEXT,
-            order_type TEXT,
-            status TEXT DEFAULT 'pending',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
-    }
+// 💡 1. 初始化 Neon PostgreSQL 雲端資料庫連線
+const pool = new Pool({
+    // 請將這裡替換成你在 Neon 獲取的真實連線字串
+    connectionString: 'postgresql://neondb_owner:npg_gvya8rfw4iVz@ep-misty-dream-b3kyd2ee-pooler.c-4.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
 });
 
-// 1. 取得最新訂單 (GET /api/orders)
+// 建立訂單資料表 (使用 PostgreSQL 語法 SERIAL)
+pool.query(`CREATE TABLE IF NOT EXISTS orders (
+    id SERIAL PRIMARY KEY,
+    student_id VARCHAR(255),
+    cart_items TEXT,
+    payment_method VARCHAR(50),
+    order_type VARCHAR(50),
+    status VARCHAR(50) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)`, (err) => {
+    if (err) console.error('無法建立資料表:', err.message);
+    else console.log('✅ 成功連接 Neon PostgreSQL 雲端資料庫。');
+});
+
+// 2. 取得最新訂單 (GET /api/orders)
 app.get('/api/orders', (req, res) => {
-    // 將 DESC 改為 ASC，讓先下單的排在最上面
     const sql = `SELECT * FROM orders WHERE status != 'completed' ORDER BY id ASC`;
-    db.all(sql, [], (err, rows) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json(rows);
+    pool.query(sql, (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(result.rows);
     });
 });
 
-// 2. 新增訂單 (POST /api/orders)
+// 💡 3. 新增：查詢單筆訂單狀態 (GET /api/orders/:id) - 供學生手機端即時追蹤使用
+app.get('/api/orders/:id', (req, res) => {
+    const { id } = req.params;
+    pool.query(`SELECT status FROM orders WHERE id = $1`, [id], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (result.rows.length === 0) return res.status(404).json({ error: '找不到訂單' });
+        res.json({ status: result.rows[0].status });
+    });
+});
+
+// 4. 新增訂單 (POST /api/orders)
+// 新增訂單 API (加入 20 單防爆單機制)
 app.post('/api/orders', (req, res) => {
-    // 自動兼容前台線上點餐(camelCase)與 POS 端(snake_case)的資料格式
     const studentId = req.body.studentId || req.body.student_id;
-    // 如果傳來的是 cart 陣列，轉成 JSON 字串；如果是已經轉好的字串，直接使用
     const cartItems = req.body.cart ? JSON.stringify(req.body.cart) : req.body.cart_items;
     const paymentMethod = req.body.paymentMethod || req.body.payment_method || 'cash';
     const orderType = req.body.orderType || req.body.order_type || 'online';
 
-    // 基本資料驗證
     if (!studentId || !cartItems) {
-        return res.status(400).json({ error: '缺少必要的訂單資料 (學號/取餐號碼 或 購物車內容)' });
+        return res.status(400).json({ error: '缺少必要的訂單資料' });
     }
 
-    const sql = `INSERT INTO orders (student_id, cart_items, payment_method, order_type) VALUES (?, ?, ?, ?)`;
-    const params = [studentId, cartItems, paymentMethod, orderType];
-
-    db.run(sql, params, function(err) {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.status(201).json({
-            message: '訂單建立成功',
-            orderId: this.lastID
+    // 💡 防爆單機制：檢查線上未完成訂單是否超過 20 筆
+    if (orderType === 'online') {
+        const checkSql = `SELECT COUNT(*) as count FROM orders WHERE status IN ('pending', 'preparing') AND order_type = 'online'`;
+        db.get(checkSql, [], (err, row) => {
+            if (err) return res.status(500).json({ error: err.message });
+            
+            if (row.count >= 20) {
+                // 超過 20 單，拒絕線上點餐
+                return res.status(400).json({ error: '目前廚房滿載（超過20單未出），為確保出餐品質，暫停線上點餐，請至現場排隊！' });
+            }
+            insertOrder(); // 沒超過，繼續寫入訂單
         });
-    });
+    } else {
+        insertOrder(); // 現場點餐不受限，直接寫入
+    }
+
+    // 實際寫入資料庫的函數
+    function insertOrder() {
+        const sql = `INSERT INTO orders (student_id, cart_items, payment_method, order_type, status) VALUES (?, ?, ?, ?, 'pending')`;
+        db.run(sql, [studentId, cartItems, paymentMethod, orderType], function(err) {
+            if (err) return res.status(500).json({ error: err.message });
+            res.status(201).json({ message: '訂單建立成功', orderId: this.lastID });
+        });
+    }
 });
 
-// 3. 更新訂單狀態 (PATCH /api/orders/:id)
+// 5. 更新訂單狀態 (PATCH /api/orders/:id)
 app.patch('/api/orders/:id', (req, res) => {
     const { status } = req.body;
     const { id } = req.params;
 
-    if (!status) {
-        return res.status(400).json({ error: '請提供要更新的狀態' });
-    }
+    if (!status) return res.status(400).json({ error: '請提供要更新的狀態' });
 
-    const sql = `UPDATE orders SET status = ? WHERE id = ?`;
-    db.run(sql, [status, id], function(err) {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json({ message: '訂單狀態已更新', changes: this.changes });
+    const sql = `UPDATE orders SET status = $1 WHERE id = $2`;
+    pool.query(sql, [status, id], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: '訂單狀態已更新' });
     });
 });
 
-// 啟動伺服器
 app.listen(PORT, () => {
-    console.log(`伺服器正在 port ${PORT} 運行中...`);
+    console.log(`🚀 伺服器正在 port ${PORT} 運行中...`);
 });
