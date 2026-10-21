@@ -133,7 +133,53 @@ function checkout() {
 // 處理付款並將訂單發送給 Render 廚房後端
 async function processPayment() {
     const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
-    
+ let trackingInterval;
+
+// 假設這是在 processPayment 結帳成功後的邏輯
+// const data = await response.json();
+// document.getElementById('checkout-modal').style.display = 'none';
+// showTrackingScreen(data.orderId);
+
+function showTrackingScreen(orderId) {
+    // 建立追蹤 UI 並覆蓋整個畫面
+    const trackingUI = document.createElement('div');
+    trackingUI.id = 'tracking-screen';
+    trackingUI.innerHTML = `
+        <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,245,225,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+            <h2 style="color:#5A4A42;">您的取餐編號：<br><span style="font-size:48px; color:#FF8C42;">線上-${String(orderId).padStart(3, '0')}</span></h2>
+            <h1 id="live-status" style="color: #FF8C42; font-size: 32px; margin-top:20px;">⏳ 訂單已送入廚房</h1>
+            <p style="color:#9E897E; font-weight:bold; margin-top:10px;">請留意畫面變化，勿關閉此視窗</p>
+        </div>
+    `;
+    document.body.appendChild(trackingUI);
+
+    // 每 3 秒詢問一次最新狀態
+    trackingInterval = setInterval(() => checkOrderStatus(orderId), 3000);
+}
+
+async function checkOrderStatus(orderId) {
+    try {
+        const response = await fetch(`https://bento-shop.onrender.com/api/orders/${orderId}`);
+        const data = await response.json();
+        
+        const statusText = document.getElementById('live-status');
+        
+        if (data.status === 'preparing') {
+            statusText.innerHTML = '🧑‍🍳 商家已接單，餐點製作中...';
+            statusText.style.color = '#06D6A0';
+        } else if (data.status === 'ready') {
+            statusText.innerHTML = '🍱 餐點已完成，請至櫃檯取餐！';
+            statusText.style.color = '#e63946';
+            clearInterval(trackingInterval); // 完成後停止檢查
+        } else if (data.status === 'completed') {
+            document.getElementById('tracking-screen').remove();
+            alert('感謝您的購買，祝您用餐愉快！');
+        }
+    } catch (error) {
+        console.error('狀態更新失敗', error);
+    }
+
+}
     // 移除 prompt 輸入學號的機制
     document.getElementById('checkout-modal').style.display = 'none'; 
 

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>丼物園 - 營收數據面板</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .filter-section { display: flex; gap: 15px; margin-bottom: 25px; justify-content: center; }
+        .filter-btn { padding: 10px 25px; border: 2px solid #FF8C42; background: white; color: #FF8C42; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+        .filter-btn.active, .filter-btn:hover { background: #FF8C42; color: white; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .stat-card { background: #fff; border-radius: 24px; padding: 30px; text-align: center; box-shadow: 0 8px 20px rgba(90, 74, 66, 0.08); border: 4px solid #FFD166; }
+        .stat-title { font-size: 18px; color: #9E897E; font-weight: bold; margin-bottom: 10px; }
+        .stat-value { font-size: 42px; color: #FF8C42; font-weight: 900; }
+        .chart-container { background: #fff; border-radius: 24px; padding: 30px; box-shadow: 0 8px 20px rgba(90, 74, 66, 0.08); border: 4px solid #06D6A0; }
+        .chart-container h3 { color: #5A4A42; margin-top: 0; }
+        .ranking-list { list-style: none; padding: 0; margin: 0; }
+        .ranking-list li { display: flex; justify-content: space-between; padding: 15px 0; border-bottom: 2px dashed #F0DDBB; font-weight: bold; color: #5A4A42; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="brand-logo">
+            <h1>📊 丼物園 Donburi - 營收看板</h1>
+        </div>
+        <div style="font-weight: bold; color: #5A4A42;">店長專屬後台</div>
+    </header>
+
+    <main class="dashboard-container">
+        <!-- 💡 時間篩選按鈕 -->
+        <div class="filter-section">
+            <button class="filter-btn active" onclick="updateDashboard('day', this)">今天</button>
+            <button class="filter-btn" onclick="updateDashboard('week', this)">最近一週</button>
+            <button class="filter-btn" onclick="updateDashboard('month', this)">本月</button>
+            <button class="filter-btn" onclick="updateDashboard('all', this)">全部歷史</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">💰 總營收 (NT$)</div>
+                <div class="stat-value" id="total-revenue">0</div>
+            </div>
+            <div class="stat-card" style="border-color: #06D6A0;">
+                <div class="stat-title">📝 總接單數</div>
+                <div class="stat-value" id="total-orders" style="color: #06D6A0;">0</div>
+            </div>
+            <div class="stat-card" style="border-color: #FF8C42;">
+                <div class="stat-title">🍱 賣出便當總數</div>
+                <div class="stat-value" id="total-items">0</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h3>🏆 熱銷餐點排行榜</h3>
+            <ul class="ranking-list" id="ranking-list">
+                <li>載入中...</li>
+            </ul>
+        </div>
+    </main>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
