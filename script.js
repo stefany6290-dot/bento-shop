@@ -160,9 +160,10 @@ function showTrackingScreen(orderId) {
                 您的取餐編號
             </h2>
 
-            <h1 style="font-size:48px; color:#FF8C42;">
-                線上-${String(orderId).padStart(3, '0')}
-            </h1>
+            <h1 id="pickup-number"
+    style="font-size:48px; color:#FF8C42;">
+    取餐編號載入中...
+</h1>
 
             <h2 id="live-status" style="color:#FF8C42;">
                 ⏳ 訂單已送入廚房
@@ -218,6 +219,13 @@ async function checkOrderStatus(orderId) {
         }
 
         const data = await response.json();
+        const pickupElement = document.querySelector(
+    '#tracking-screen #pickup-number'
+);
+
+if (pickupElement && data.pickupNumber) {
+    pickupElement.textContent = data.pickupNumber;
+}
        const statusElement = document.getElementById('live-status');
         if (!statusElement) return;
 

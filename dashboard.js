@@ -1,98 +1,203 @@
-let allOrders = []; // 把資料存在全域變數，避免一直狂打 API
 
-// 抓取所有訂單
+const API_BASE = 'https://bento-shop.onrender.com';
+
+let allOrders = [];
+let currentRange = 'day';
+
+// 台灣日期 YYYY-MM-DD
+function taiwanDate(date = new Date()) {
+    return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).format(date);
+}
+
+// 取得指定日期的台灣年月日
+function dateParts(date) {
+    const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    }).formatToParts(date);
+
+    const values = {};
+    parts.forEach(p => {
+        if (p.type !== 'literal') values[p.type] = p.value;
+    });
+
+    return `${values.year}-${values.month}-${values.day}`;
+}
+
+function orderBusinessDate(order) {
+    // 新訂單優先使用資料庫營業日期
+    if (order.business_date) {
+        return String(order.business_date).slice(0, 10);
+    }
+
+    // 舊訂單：假設 created_at 儲存的是 UTC
+    if (!order.created_at) return '';
+
+    const raw = String(order.created_at);
+    const timestamp = /Z$|[+-]\d\d:\d\d$/.test(raw)
+        ? raw
+        : raw.replace(' ', 'T') + 'Z';
+
+    const date = new Date(timestamp);
+
+    return Number.isNaN(date.getTime())
+        ? ''
+        : dateParts(date);
+}
+
 async function fetchDashboardData() {
     try {
-        const response = await fetch('https://bento-shop.onrender.com/api/all-orders');
-        if (!response.ok) throw new Error('無法取得資料');
-        
-        allOrders = await response.json();
-        
-        // 預設顯示「今天」的數據
-        const activeBtn = document.querySelector('.filter-btn.active');
-        updateDashboard('day', activeBtn);
+        const response = await fetch(
+            `${API_BASE}/api/all-orders`,
+            { cache: 'no-store' }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data)) {
+            throw new Error('訂單資料格式錯誤');
+        }
+
+        allOrders = data;
+        updateDashboard(currentRange);
+
     } catch (error) {
-        console.error('獲取數據失敗:', error);
-        document.getElementById('ranking-list').innerHTML = '<li style="color:red;">無法連線到伺服器。</li>';
+        console.error('Dashboard 載入失敗:', error);
+        document.getElementById('ranking-list').innerHTML =
+            '<li>⚠️ 無法取得營業資料</li>';
     }
 }
 
-// 根據時間過濾並更新畫面
 function updateDashboard(timeRange, btnElement) {
-    // 處理按鈕視覺變化
+    currentRange = timeRange;
+
     if (btnElement) {
-        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.filter-btn')
+            .forEach(btn => btn.classList.remove('active'));
+
         btnElement.classList.add('active');
     }
 
-    const now = new Date();
-    
-    // 過濾出符合時間區間的訂單
+    const today = dateParts(new Date());
+
+    const todayStart = new Date(`${today}T00:00:00+08:00`);
+    const weekStart = new Date(
+        todayStart.getTime() - 6 * 86400000
+    );
+    const weekStartString = dateParts(weekStart);
+
+    const currentMonth = today.slice(0, 7);
+
     const filteredOrders = allOrders.filter(order => {
-        const orderDate = new Date(order.created_at);
-        
+        const date = orderBusinessDate(order);
+
+        if (!date) return false;
+
         if (timeRange === 'day') {
-            return orderDate.toDateString() === now.toDateString();
-        } else if (timeRange === 'week') {
-            const pastWeek = new Date();
-            pastWeek.setDate(now.getDate() - 7);
-            return orderDate >= pastWeek && orderDate <= now;
-        } else if (timeRange === 'month') {
-            return orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear();
+            return date === today;
         }
-        return true; // all
+
+        if (timeRange === 'week') {
+            return date >= weekStartString && date <= today;
+        }
+
+        if (timeRange === 'month') {
+            return date.startsWith(currentMonth);
+        }
+
+        return true;
     });
 
     let totalRevenue = 0;
-    let totalItemsCount = 0;
+    let totalItems = 0;
     const itemSales = {};
 
-    filteredOrders.forEach(order => {
-        let cartItems = [];
-        try {
-            cartItems = typeof order.cart_items === 'string' ? JSON.parse(order.cart_items) : (order.cart_items || []);
-        } catch (e) { console.error(e); }
+    // 取消訂單不列入營收
+    const validOrders = filteredOrders.filter(
+        order => order.status !== 'cancelled'
+    );
 
-        cartItems.forEach(item => {
-            totalRevenue += item.price;
-            totalItemsCount += 1;
-            
-            if (itemSales[item.name]) {
-                itemSales[item.name]++;
-            } else {
-                itemSales[item.name] = 1;
+    validOrders.forEach(order => {
+        let cart = order.cart_items || [];
+
+        if (typeof cart === 'string') {
+            try {
+                cart = JSON.parse(cart);
+            } catch (error) {
+                cart = [];
             }
+        }
+
+        if (!Array.isArray(cart)) return;
+
+        cart.forEach(item => {
+            const price = Number(item.price) || 0;
+            const quantity = Number(item.quantity) > 0
+                ? Number(item.quantity)
+                : 1;
+
+            totalRevenue += price * quantity;
+            totalItems += quantity;
+
+            itemSales[item.name] =
+                (itemSales[item.name] || 0) + quantity;
         });
     });
 
-    // 更新數字
-    document.getElementById('total-revenue').innerText = totalRevenue.toLocaleString();
-    document.getElementById('total-orders').innerText = filteredOrders.length;
-    document.getElementById('total-items').innerText = totalItemsCount;
+    document.getElementById('total-revenue').textContent =
+        totalRevenue.toLocaleString('zh-TW');
 
-    // 更新排行榜
-    const sortedItems = Object.entries(itemSales).sort((a, b) => b[1] - a[1]);
+    document.getElementById('total-orders').textContent =
+        validOrders.length;
+
+    document.getElementById('total-items').textContent =
+        totalItems;
+
     const rankingList = document.getElementById('ranking-list');
     rankingList.innerHTML = '';
-    
+
+    const sortedItems = Object.entries(itemSales)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
     if (sortedItems.length === 0) {
-        rankingList.innerHTML = '<li>這個時段目前還沒有銷售紀錄喔！</li>';
+        rankingList.innerHTML =
+            '<li>這個時段目前還沒有銷售紀錄喔！</li>';
         return;
     }
 
     const medals = ['🥇', '🥈', '🥉', '４', '５'];
-    sortedItems.slice(0, 5).forEach((item, index) => {
-        rankingList.innerHTML += `
-            <li>
-                <span>${medals[index]} ${item[0]}</span>
-                <span style="color: #FF8C42;">賣出 ${item[1]} 份</span>
-            </li>
-        `;
+
+    sortedItems.forEach(([name, quantity], index) => {
+        const li = document.createElement('li');
+
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = `${medals[index]} ${name}`;
+
+        const quantitySpan = document.createElement('span');
+        quantitySpan.style.color = '#FF8C42';
+        quantitySpan.textContent = `賣出 ${quantity} 份`;
+
+        li.append(nameSpan, quantitySpan);
+        rankingList.appendChild(li);
     });
 }
 
-// 網頁載入時自動執行一次，之後每 15 秒背後更新一次資料
-window.onload = () => {
+// 網頁載入時顯示今天
+window.addEventListener('DOMContentLoaded', () => {
     fetchDashboardData();
+
+    // 每 15 秒重新取得資料，也會重新判斷今天日期
     setInterval(fetchDashboardData, 15000);
-};
+});

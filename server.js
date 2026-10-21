@@ -33,6 +33,7 @@ const pool = new Pool({
 });
 
 // 初始化訂單資料表
+
 async function initializeDatabase() {
     try {
         await pool.query(`
@@ -47,13 +48,92 @@ async function initializeDatabase() {
             )
         `);
 
-        console.log('✅ Neon PostgreSQL 資料庫連線成功');
-        console.log('✅ orders 資料表已準備完成');
+        // 每張訂單的營業日期及每日取餐號碼
+        await pool.query(`
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS business_date DATE
+        `);
+
+        await pool.query(`
+            ALTER TABLE orders
+            ADD COLUMN IF NOT EXISTS daily_number INTEGER
+        `);
+
+        // 每日流水號計數器
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS daily_order_counters (
+                business_date DATE PRIMARY KEY,
+                last_number INTEGER NOT NULL
+            )
+        `);
+
+        // 舊訂單回填營業日期
+        // 假設既有 created_at 是以 UTC 儲存
+        await pool.query(`
+            UPDATE orders
+            SET business_date =
+                (created_at AT TIME ZONE 'UTC'
+                 AT TIME ZONE 'Asia/Taipei')::date
+            WHERE business_date IS NULL
+        `);
+
+        // 為舊訂單建立每日流水號
+        await pool.query(`
+            WITH numbered AS (
+                SELECT
+                    id,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY business_date
+                        ORDER BY created_at, id
+                    ) AS number
+                FROM orders
+            )
+            UPDATE orders AS o
+            SET daily_number = numbered.number
+            FROM numbered
+            WHERE o.id = numbered.id
+              AND o.daily_number IS NULL
+        `);
+
+        // 防止同一天出現重複取餐號碼
+        await pool.query(`
+            CREATE UNIQUE INDEX IF NOT EXISTS
+                orders_daily_number_unique
+            ON orders (business_date, daily_number)
+            WHERE business_date IS NOT NULL
+              AND daily_number IS NOT NULL
+        `);
+
+        // 計數器從歷史最大號碼開始
+        await pool.query(`
+            INSERT INTO daily_order_counters (
+                business_date,
+                last_number
+            )
+            SELECT
+                business_date,
+                MAX(daily_number)
+            FROM orders
+            WHERE business_date IS NOT NULL
+              AND daily_number IS NOT NULL
+            GROUP BY business_date
+            ON CONFLICT (business_date)
+            DO UPDATE SET
+                last_number = GREATEST(
+                    daily_order_counters.last_number,
+                    EXCLUDED.last_number
+                )
+        `);
+
+        console.log('✅ Neon 資料庫初始化成功');
+        console.log('✅ 每日訂單流水號已啟用');
+
     } catch (err) {
-        console.error('❌ 資料庫初始化失敗:', err.message);
+        console.error('❌ 資料庫初始化失敗:', err);
         throw err;
     }
 }
+
 
 // ==========================================
 // 3. 查詢線上接單狀態
@@ -123,20 +203,36 @@ app.get('/api/orders/:id', async (req, res) => {
     }
 
     try {
-        const result = await pool.query(
-            'SELECT status FROM orders WHERE id = $1',
-            [id]
-        );
-
+      const result = await pool.query(
+    `SELECT
+        status,
+        daily_number,
+        business_date,
+        order_type
+     FROM orders
+     WHERE id = $1`,
+    [id]
+);
         if (result.rows.length === 0) {
             return res.status(404).json({
                 error: '找不到訂單'
             });
         }
+const order = result.rows[0];
 
-        res.json({
-            status: result.rows[0].status
-        });
+const prefix = order.order_type === 'onsite'
+    ? '現場'
+    : '線上';
+
+res.json({
+    status: order.status,
+    dailyNumber: order.daily_number,
+    businessDate: order.business_date,
+    pickupNumber: order.daily_number == null
+        ? null
+        : `${prefix}-${String(order.daily_number).padStart(3, '0')}`
+});
+
     } catch (err) {
         console.error('查詢訂單狀態失敗:', err);
         res.status(500).json({
@@ -150,7 +246,10 @@ app.get('/api/orders/:id', async (req, res) => {
 // POST /api/orders
 // ==========================================
 
+
 app.post('/api/orders', async (req, res) => {
+    let client;
+
     try {
         const studentId =
             req.body.studentId || req.body.student_id;
@@ -170,79 +269,136 @@ app.post('/api/orders', async (req, res) => {
             req.body.order_type ||
             'online';
 
-        // 防爆單：暫停時拒絕線上訂單
-        if (
-            isOnlineOrderingPaused &&
-            orderType === 'online'
-        ) {
+        if (isOnlineOrderingPaused && orderType === 'online') {
             return res.status(403).json({
-                error:
-                    '目前廚房滿載，已暫停線上點餐，請至現場排隊！'
+                error: '目前已暫停線上接單，請至現場排隊！'
             });
         }
 
-        // 檢查必要欄位
         if (
             typeof studentId !== 'string' ||
             !studentId.trim() ||
-            rawCart === undefined ||
-            rawCart === null ||
-            rawCart === ''
+            rawCart == null
         ) {
             return res.status(400).json({
                 error: '缺少必要的訂單資料'
             });
         }
 
-        // 統一將購物車轉成 JSON 字串
-        let cartItems;
+        let cart;
 
-        if (typeof rawCart === 'string') {
-            try {
-                cartItems = JSON.stringify(
-                    JSON.parse(rawCart)
-                );
-            } catch (err) {
-                return res.status(400).json({
-                    error: '購物車資料不是有效的 JSON'
-                });
-            }
-        } else {
-            cartItems = JSON.stringify(rawCart);
+        try {
+            cart = typeof rawCart === 'string'
+                ? JSON.parse(rawCart)
+                : rawCart;
+        } catch (error) {
+            return res.status(400).json({
+                error: '購物車不是有效 JSON'
+            });
         }
 
-        const sql = `
+        if (
+            !Array.isArray(cart) ||
+            cart.length === 0 ||
+            cart.some(item =>
+                !item ||
+                typeof item.name !== 'string' ||
+                !Number.isFinite(Number(item.price)) ||
+                Number(item.price) < 0
+            )
+        ) {
+            return res.status(400).json({
+                error: '購物車內容不正確'
+            });
+        }
+
+        client = await pool.connect();
+        await client.query('BEGIN');
+
+        // 以資料庫時間判斷台灣營業日期
+        const dateResult = await client.query(`
+            SELECT (NOW() AT TIME ZONE 'Asia/Taipei')::date
+                AS business_date
+        `);
+
+        const businessDate = dateResult.rows[0].business_date;
+
+        // 原子操作：取得當天下一個取餐號碼
+        const counterResult = await client.query(`
+            INSERT INTO daily_order_counters (
+                business_date,
+                last_number
+            )
+            VALUES ($1, 1)
+            ON CONFLICT (business_date)
+            DO UPDATE SET
+                last_number =
+                    daily_order_counters.last_number + 1
+            RETURNING last_number
+        `, [businessDate]);
+
+        const dailyNumber = counterResult.rows[0].last_number;
+
+        const result = await client.query(`
             INSERT INTO orders (
                 student_id,
                 cart_items,
                 payment_method,
                 order_type,
-                status
+                status,
+                business_date,
+                daily_number
             )
-            VALUES ($1, $2, $3, $4, 'pending')
+            VALUES (
+                $1, $2, $3, $4, 'pending', $5, $6
+            )
             RETURNING id
-        `;
-
-        const result = await pool.query(sql, [
+        `, [
             studentId.trim(),
-            cartItems,
+            JSON.stringify(cart),
             paymentMethod,
-            orderType
+            orderType,
+            businessDate,
+            dailyNumber
         ]);
 
-        const orderId = result.rows[0].id;
+        await client.query('COMMIT');
 
-        console.log(`🛒 新訂單建立成功：#${orderId}`);
+        const orderId = result.rows[0].id;
+        const prefix = orderType === 'onsite'
+            ? '現場'
+            : '線上';
+
+        const pickupNumber =
+            `${prefix}-${String(dailyNumber).padStart(3, '0')}`;
+
+        console.log(`🛒 訂單 #${orderId}：${pickupNumber}`);
 
         res.status(201).json({
             message: '訂單建立成功',
-            orderId
+            orderId,
+            dailyNumber,
+            pickupNumber,
+            businessDate
         });
+
     } catch (err) {
+        if (client) {
+            try {
+                await client.query('ROLLBACK');
+            } catch (rollbackError) {
+                console.error('交易回滾失敗:', rollbackError);
+            }
+        }
+
         console.error('建立訂單失敗:', err);
+
         res.status(500).json({
             error: '訂單建立失敗'
         });
+
+    } finally {
+        if (client) client.release();
     }
 });
 

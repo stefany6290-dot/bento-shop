@@ -34,12 +34,13 @@ function renderKanban(orders) {
         let itemsHtml = cartItems.map(item => `<div>🍱 ${item.name}</div>`).join('');
 
         // 💡 強制使用資料庫 ID 顯示單號，徹底解決重複問題
-        let displayId;
-        if (order.order_type === 'onsite') {
-            displayId = `現場-${String(order.id).padStart(3, '0')}`;
-        } else {
-            displayId = `線上-${String(order.id).padStart(3, '0')}`;
-        }
+       const prefix = order.order_type === 'onsite'
+    ? '現場'
+    : '線上';
+
+const displayId = order.daily_number != null
+    ? `${prefix}-${String(order.daily_number).padStart(3, '0')}`
+    : `${prefix}-${String(order.id).padStart(3, '0')}`;
 
         const cardHtml = `
             <div class="order-card">
