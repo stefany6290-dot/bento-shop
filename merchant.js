@@ -64,43 +64,121 @@ function getActionButton(id, status) {
     return '';
 }
 
-window.updateStatus = async function(id, newStatus) {
-    try {
-        await fetch(`https://bento-shop.onrender.com/api/orders/${id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: newStatus })
-        });
-        fetchOrders(); 
-    } catch (error) { console.error("更新狀態失敗:", error); }
-    // 如果 merchant.js 已經有 API_BASE，請沿用原本的
+
+// ==========================================
+// API 網址
+// ==========================================
 const ORDERING_API = 'https://bento-shop.onrender.com';
 
+
+// ==========================================
+// 1. 店家更新訂單狀態
+// ==========================================
+window.updateStatus = async function(id, newStatus) {
+
+    try {
+        // 發送更新請求
+        const response = await fetch(
+            `${ORDERING_API}/api/orders/${id}`,
+            {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            }
+        );
+
+        // 檢查是否更新成功
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(
+                `更新失敗 HTTP ${response.status}: ${errorText}`
+            );
+        }
+
+        // 再次查詢資料庫中的訂單狀態
+        const checkResponse = await fetch(
+            `${ORDERING_API}/api/orders/${id}`,
+            { cache: 'no-store' }
+        );
+
+        if (!checkResponse.ok) {
+            throw new Error('無法確認更新後的訂單狀態');
+        }
+
+        const updatedOrder = await checkResponse.json();
+
+        // 確認資料庫狀態是否一致
+        if (updatedOrder.status !== newStatus) {
+            throw new Error(
+                `狀態不一致：預期 ${newStatus}，實際 ${updatedOrder.status}`
+            );
+        }
+
+        console.log(
+            `訂單 ${id} 已成功更新為 ${newStatus}`
+        );
+
+        // 更新成功後重新載入看板
+        await fetchOrders();
+
+    } catch (error) {
+        console.error('更新訂單失敗：', error);
+        alert(`更新訂單失敗：${error.message}`);
+    }
+};
+
+
+// ==========================================
+// 2. 讀取線上接單狀態
+// ==========================================
 async function loadOrderingStatus() {
+
     try {
         const response = await fetch(
             `${ORDERING_API}/api/ordering-status`,
             { cache: 'no-store' }
         );
 
-        if (!response.ok) throw new Error('無法取得狀態');
+        if (!response.ok) {
+            throw new Error('無法取得接單狀態');
+        }
 
         const data = await response.json();
+
         updateOrderingUI(data.isPaused);
 
     } catch (error) {
-        console.error('接單狀態讀取失敗:', error);
-        document.getElementById('ordering-status-text')
-            .textContent = '⚠️ 無法取得接單狀態';
+        console.error('接單狀態讀取失敗：', error);
+
+        const statusText = document.getElementById(
+            'ordering-status-text'
+        );
+
+        if (statusText) {
+            statusText.textContent = '⚠️ 無法取得接單狀態';
+        }
     }
 }
 
-function updateOrderingUI(isPaused) {
-    const statusText =
-        document.getElementById('ordering-status-text');
 
-    const button =
-        document.getElementById('toggle-ordering-btn');
+// ==========================================
+// 3. 更新接單開關的畫面
+// ==========================================
+function updateOrderingUI(isPaused) {
+
+    const statusText = document.getElementById(
+        'ordering-status-text'
+    );
+
+    const button = document.getElementById(
+        'toggle-ordering-btn'
+    );
+
+    if (!statusText || !button) return;
 
     statusText.textContent = isPaused
         ? '🔴 目前已暫停線上接單'
@@ -110,38 +188,54 @@ function updateOrderingUI(isPaused) {
         ? '✅ 恢復線上接單'
         : '⛔ 暫停線上接單';
 
-    button.style.backgroundColor =
-        isPaused ? '#06A77D' : '#E63946';
+    button.style.backgroundColor = isPaused
+        ? '#06A77D'
+        : '#E63946';
 
     button.style.color = 'white';
 }
 
-async function toggleOnlineOrdering() {
-    const button =
-        document.getElementById('toggle-ordering-btn');
 
-    button.disabled = true;
+// ==========================================
+// 4. 店家切換線上接單狀態
+// ==========================================
+async function toggleOnlineOrdering() {
+
+    const button = document.getElementById(
+        'toggle-ordering-btn'
+    );
+
+    if (button) button.disabled = true;
 
     try {
         const response = await fetch(
             `${ORDERING_API}/api/toggle-ordering`,
-            { method: 'POST' }
+            {
+                method: 'POST'
+            }
         );
 
-        if (!response.ok) throw new Error('切換失敗');
+        if (!response.ok) {
+            throw new Error('切換接單狀態失敗');
+        }
 
         const data = await response.json();
+
         updateOrderingUI(data.isPaused);
 
     } catch (error) {
+        console.error('切換接單狀態失敗：', error);
         alert('切換接單狀態失敗，請稍後再試');
-        console.error(error);
+
     } finally {
-        button.disabled = false;
+        if (button) button.disabled = false;
     }
 }
 
+
+// ==========================================
+// 5. 網頁載入後取得接單狀態
+// ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     loadOrderingStatus();
 });
-};
