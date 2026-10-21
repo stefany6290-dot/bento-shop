@@ -89,40 +89,61 @@
         }
 
         // 送出訂單至後端
-        async function submitPosOrder() {
-            if (!cart || cart.length === 0) {
-                alert("購物車是空的喔！請先點餐。");
-                return;
+       
+async function submitPosOrder() {
+    if (!cart || cart.length === 0) {
+        alert('購物車是空的喔！請先點餐。');
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            'https://bento-shop.onrender.com/api/orders',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    studentId: '現場點餐',
+                    cart: cart,
+                    paymentMethod: 'cash',
+                    orderType: 'onsite'
+                })
             }
+        );
 
-            try {
-                const response = await fetch('https://bento-shop.onrender.com/api/orders', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        studentId: '現場點餐', // 讓後廚知道這是現場單
-                        cart: cart,
-                        paymentMethod: 'cash',
-                        orderType: 'onsite'
-                    })
-                });
+        const data = await response.json();
 
-                if (!response.ok) throw new Error('伺服器錯誤');
-
-                const data = await response.json();
-                
-                // 💡 直接使用資料庫產生的唯一 ID，保證絕對不會重複！
-                const queueNumber = '現場-' + String(data.orderId).padStart(3, '0');
-
-                alert(`✅ 結帳成功！請向客人收費。\n📣 取餐號碼為：【 ${queueNumber} 】`);
-                
-                cart = []; 
-                updateCartUI(); 
-            } catch (error) {
-                console.error("錯誤:", error);
-                alert("無法連線至伺服器，請確認網路或伺服器狀態。");
-            }
+        if (!response.ok) {
+            throw new Error(data.error || '訂單建立失敗');
         }
+
+        // 使用後端產生的每日取餐號碼
+        if (!data.pickupNumber) {
+            throw new Error(
+                '訂單已送出，但伺服器未回傳每日取餐編號。' +
+                '請先到店家看板確認訂單，避免重複送單。'
+            );
+        }
+
+        const queueNumber = data.pickupNumber;
+
+        alert(
+            `✅ 結帳成功！請向客人收費。\n` +
+            `📣 取餐號碼為：【 ${queueNumber} 】`
+        );
+
+        // 清空購物車
+        cart = [];
+        updateCartUI();
+
+    } catch (error) {
+        console.error('POS 訂單錯誤:', error);
+        alert(`⚠️ ${error.message}`);
+    }
+}
+
     </script>
 </body>
 </html>
