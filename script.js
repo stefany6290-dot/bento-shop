@@ -218,8 +218,7 @@ async function checkOrderStatus(orderId) {
         }
 
         const data = await response.json();
-        const statusElement = document.getElementById('live-status');
-
+       const statusElement = document.getElementById('live-status');
         if (!statusElement) return;
 
         switch (data.status) {
